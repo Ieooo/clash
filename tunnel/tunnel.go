@@ -19,6 +19,8 @@ import (
 	icontext "github.com/Dreamacro/clash/context"
 	"github.com/Dreamacro/clash/log"
 	"github.com/Dreamacro/clash/tunnel/statistic"
+
+	"go.uber.org/atomic"
 )
 
 var (
@@ -35,6 +37,9 @@ var (
 
 	// default timeout for UDP session
 	udpTimeout = 60 * time.Second
+
+	// experimental feature
+	UDPFallbackMatch = atomic.NewBool(false)
 )
 
 func init() {
@@ -407,8 +412,8 @@ func match(metadata *C.Metadata) (C.Proxy, C.Rule, error) {
 				continue
 			}
 
-			if metadata.NetWork == C.UDP && !adapter.SupportUDP() {
-				log.Debugln("%s UDP is not supported", adapter.Name())
+			if metadata.NetWork == C.UDP && !adapter.SupportUDP() && UDPFallbackMatch.Load() {
+				log.Debugln("[Matcher] %s UDP is not supported, skip match", adapter.Name())
 				continue
 			}
 			return adapter, rule, nil

@@ -86,7 +86,9 @@ type Profile struct {
 }
 
 // Experimental config
-type Experimental struct{}
+type Experimental struct {
+	UDPFallbackMatch bool `yaml:"udp-fallback-match"`
+}
 
 // Config is clash config manager
 type Config struct {
@@ -249,6 +251,9 @@ func UnmarshalRawConfig(buf []byte) (*RawConfig, error) {
 		},
 		Profile: Profile{
 			StoreSelected: true,
+		},
+		Experimental: Experimental{
+			UDPFallbackMatch: true,
 		},
 	}
 

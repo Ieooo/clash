@@ -104,7 +104,9 @@ func GetGeneral() *config.General {
 	return general
 }
 
-func updateExperimental(c *config.Config) {}
+func updateExperimental(c *config.Config) {
+	tunnel.UDPFallbackMatch.Store(c.Experimental.UDPFallbackMatch)
+}
 
 func updateDNS(c *config.DNS) {
 	if !c.Enable {
