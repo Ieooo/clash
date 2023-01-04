@@ -252,9 +252,6 @@ func UnmarshalRawConfig(buf []byte) (*RawConfig, error) {
 		Profile: Profile{
 			StoreSelected: true,
 		},
-		Experimental: Experimental{
-			UDPFallbackMatch: true,
-		},
 	}
 
 	if err := yaml.Unmarshal(buf, rawCfg); err != nil {
