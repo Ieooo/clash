@@ -24,19 +24,6 @@ func configRouter() http.Handler {
 	return r
 }
 
-type configSchema struct {
-	Port        *int               `json:"port"`
-	SocksPort   *int               `json:"socks-port"`
-	RedirPort   *int               `json:"redir-port"`
-	TProxyPort  *int               `json:"tproxy-port"`
-	MixedPort   *int               `json:"mixed-port"`
-	AllowLan    *bool              `json:"allow-lan"`
-	BindAddress *string            `json:"bind-address"`
-	Mode        *tunnel.TunnelMode `json:"mode"`
-	LogLevel    *log.LogLevel      `json:"log-level"`
-	IPv6        *bool              `json:"ipv6"`
-}
-
 func getConfigs(w http.ResponseWriter, r *http.Request) {
 	general := executor.GetGeneral()
 	render.JSON(w, r, general)
@@ -51,8 +38,19 @@ func pointerOrDefault(p *int, def int) int {
 }
 
 func patchConfigs(w http.ResponseWriter, r *http.Request) {
-	general := &configSchema{}
-	if err := render.DecodeJSON(r.Body, general); err != nil {
+	general := struct {
+		Port        *int               `json:"port"`
+		SocksPort   *int               `json:"socks-port"`
+		RedirPort   *int               `json:"redir-port"`
+		TProxyPort  *int               `json:"tproxy-port"`
+		MixedPort   *int               `json:"mixed-port"`
+		AllowLan    *bool              `json:"allow-lan"`
+		BindAddress *string            `json:"bind-address"`
+		Mode        *tunnel.TunnelMode `json:"mode"`
+		LogLevel    *log.LogLevel      `json:"log-level"`
+		IPv6        *bool              `json:"ipv6"`
+	}{}
+	if err := render.DecodeJSON(r.Body, &general); err != nil {
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, ErrBadRequest)
 		return
@@ -92,13 +90,11 @@ func patchConfigs(w http.ResponseWriter, r *http.Request) {
 	render.NoContent(w, r)
 }
 
-type updateConfigRequest struct {
-	Path    string `json:"path"`
-	Payload string `json:"payload"`
-}
-
 func updateConfigs(w http.ResponseWriter, r *http.Request) {
-	req := updateConfigRequest{}
+	req := struct {
+		Path    string `json:"path"`
+		Payload string `json:"payload"`
+	}{}
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, ErrBadRequest)
