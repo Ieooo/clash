@@ -12,6 +12,11 @@ Please verify that you've followed these steps
 "
       options:
         - label: "
+确保你使用的是**本仓库**最新的的 clash 或 clash premium 版本
+Ensure you are using the latest version of Clash or Clash Premium from **this repository**.
+"
+          required: true
+        - label: "
 如果你可以自己 debug 并解决的话，提交 PR 吧
 Is this something you can **debug and fix**? Send a pull request! Bug fixes and documentation fixes are welcome.
 "
