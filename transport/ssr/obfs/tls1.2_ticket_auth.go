@@ -3,8 +3,9 @@ package obfs
 import (
 	"bytes"
 	"crypto/hmac"
+	"crypto/rand"
 	"encoding/binary"
-	"math/rand"
+	mathRand "math/rand"
 	"net"
 	"strings"
 	"time"
@@ -90,7 +91,7 @@ func (c *tls12TicketConn) Write(b []byte) (int, error) {
 		buf := pool.GetBuffer()
 		defer pool.PutBuffer(buf)
 		for len(b) > 2048 {
-			size := rand.Intn(4096) + 100
+			size := mathRand.Intn(4096) + 100
 			if len(b) < size {
 				size = len(b)
 			}
@@ -196,7 +197,7 @@ func packSNIData(buf *bytes.Buffer, u string) {
 }
 
 func (c *tls12TicketConn) packTicketBuf(buf *bytes.Buffer, u string) {
-	length := 16 * (rand.Intn(17) + 8)
+	length := 16 * (mathRand.Intn(17) + 8)
 	buf.Write([]byte{0, 0x23})
 	binary.Write(buf, binary.BigEndian, uint16(length))
 	tools.AppendRandBytes(buf, length)
@@ -221,6 +222,6 @@ func (t *tls12Ticket) getHost() string {
 		host = ""
 	}
 	hosts := strings.Split(host, ",")
-	host = hosts[rand.Intn(len(hosts))]
+	host = hosts[mathRand.Intn(len(hosts))]
 	return host
 }

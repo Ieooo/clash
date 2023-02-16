@@ -6,21 +6,18 @@ import (
 	"crypto/cipher"
 	"crypto/hmac"
 	"crypto/md5"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
 	"hash/fnv"
 	"io"
-	"math/rand"
+	mathRand "math/rand"
 	"net"
 	"time"
 
 	"golang.org/x/crypto/chacha20poly1305"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 // Conn wrapper a net.Conn with vmess protocol
 type Conn struct {
@@ -77,7 +74,7 @@ func (vc *Conn) sendRequest() error {
 	buf.WriteByte(vc.respV)
 	buf.WriteByte(vc.option)
 
-	p := rand.Intn(16)
+	p := mathRand.Intn(16)
 	// P Sec Reserve Cmd
 	buf.WriteByte(byte(p<<4) | byte(vc.security))
 	buf.WriteByte(0)

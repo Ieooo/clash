@@ -1,9 +1,10 @@
 package obfs
 
 import (
+	"crypto/rand"
 	"encoding/binary"
 	"hash/crc32"
-	"math/rand"
+	mathRand "math/rand"
 	"net"
 
 	"github.com/Dreamacro/clash/common/pool"
@@ -53,7 +54,7 @@ func (c *randomHeadConn) Write(b []byte) (int, error) {
 	c.buf = append(c.buf, b...)
 	if !c.hasSentHeader {
 		c.hasSentHeader = true
-		dataLength := rand.Intn(96) + 4
+		dataLength := mathRand.Intn(96) + 4
 		buf := pool.Get(dataLength + 4)
 		defer pool.Put(buf)
 		rand.Read(buf[:dataLength])
