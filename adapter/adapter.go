@@ -101,12 +101,13 @@ func (p *Proxy) MarshalJSON() ([]byte, error) {
 
 // URLTest get the delay for the specified URL
 // implements C.Proxy
-func (p *Proxy) URLTest(ctx context.Context, url string) (t uint16, err error) {
+func (p *Proxy) URLTest(ctx context.Context, url string) (delay, meanDelay uint16, err error) {
 	defer func() {
 		p.alive.Store(err == nil)
 		record := C.DelayHistory{Time: time.Now()}
 		if err == nil {
-			record.Delay = t
+			record.Delay = delay
+			record.MeanDelay = meanDelay
 		}
 		p.history.Put(record)
 		if p.history.Len() > 10 {
@@ -156,7 +157,15 @@ func (p *Proxy) URLTest(ctx context.Context, url string) (t uint16, err error) {
 		return
 	}
 	resp.Body.Close()
-	t = uint16(time.Since(start) / time.Millisecond)
+	delay = uint16(time.Since(start) / time.Millisecond)
+
+	resp, err = client.Do(req)
+	if err != nil {
+		return
+	}
+	resp.Body.Close()
+	meanDelay = uint16(time.Since(start) / time.Millisecond / 2)
+
 	return
 }
 
