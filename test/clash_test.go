@@ -654,7 +654,7 @@ log-level: silent
 	require.NoError(t, err)
 	defer cleanup()
 
-	require.True(t, TCPing(net.JoinHostPort(localIP.String(), "10000")))
+	require.True(t, TCPing(net.JoinHostPort("127.0.0.1", "10000")))
 	testPingPongWithSocksPort(t, 10000)
 }
 
