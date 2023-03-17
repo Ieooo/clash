@@ -161,7 +161,8 @@ func (p *Proxy) URLTest(ctx context.Context, url string) (delay, meanDelay uint1
 
 	resp, err = client.Do(req)
 	if err != nil {
-		return
+		// ignore error because some server will hijack the connection and close immediately
+		return delay, 0, nil
 	}
 	resp.Body.Close()
 	meanDelay = uint16(time.Since(start) / time.Millisecond / 2)
