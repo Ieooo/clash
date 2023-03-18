@@ -43,7 +43,7 @@ jobs:
 
       - name: Build dev branch and push
         if: github.ref == 'refs/heads/dev'
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: .
           platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
@@ -70,7 +70,7 @@ jobs:
 
       - name: Build release and push
         if: startsWith(github.ref, 'refs/tags/')
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: .
           platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
