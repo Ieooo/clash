@@ -32,7 +32,7 @@ jobs:
         env:
           NAME: clash
           BINDIR: bin
-        run: make -j releases
+        run: make -j $(go run ./test/main.go) releases
 
       - name: Upload Release
         uses: softprops/action-gh-release@v1
