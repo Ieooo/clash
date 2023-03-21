@@ -162,7 +162,7 @@ func (r *Resolver) exchangeWithoutCache(ctx context.Context, m *D.Msg) (msg *D.M
 
 			msg := result.(*D.Msg)
 
-			putMsgToCache(r.lruCache, q.String(), msg)
+			putMsgToCache(r.lruCache, q.String(), q, msg)
 		}()
 
 		isIPReq := isIPRequest(q)
