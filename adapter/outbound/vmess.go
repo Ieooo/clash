@@ -340,15 +340,15 @@ func parseVmessAddr(metadata *C.Metadata) *vmess.DstAddr {
 	var addr []byte
 	switch metadata.AddrType() {
 	case socks5.AtypIPv4:
-		addrType = byte(vmess.AtypIPv4)
+		addrType = vmess.AtypIPv4
 		addr = make([]byte, net.IPv4len)
 		copy(addr[:], metadata.DstIP.To4())
 	case socks5.AtypIPv6:
-		addrType = byte(vmess.AtypIPv6)
+		addrType = vmess.AtypIPv6
 		addr = make([]byte, net.IPv6len)
 		copy(addr[:], metadata.DstIP.To16())
 	case socks5.AtypDomainName:
-		addrType = byte(vmess.AtypDomainName)
+		addrType = vmess.AtypDomainName
 		addr = make([]byte, len(metadata.Host)+1)
 		addr[0] = byte(len(metadata.Host))
 		copy(addr[1:], []byte(metadata.Host))

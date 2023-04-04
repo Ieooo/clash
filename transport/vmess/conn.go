@@ -76,7 +76,7 @@ func (vc *Conn) sendRequest() error {
 
 	p := mathRand.Intn(16)
 	// P Sec Reserve Cmd
-	buf.WriteByte(byte(p<<4) | byte(vc.security))
+	buf.WriteByte(byte(p<<4) | vc.security)
 	buf.WriteByte(0)
 	if vc.dst.UDP {
 		buf.WriteByte(CommandUDP)
