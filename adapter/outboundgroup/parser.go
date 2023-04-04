@@ -50,17 +50,17 @@ func ParseProxyGroup(config map[string]any, proxyMap map[string]C.Proxy, provide
 	providers := []types.ProxyProvider{}
 
 	if len(groupOption.Proxies) == 0 && len(groupOption.Use) == 0 {
-		return nil, errMissProxy
+		return nil, fmt.Errorf("%s: %w", groupName, errMissProxy)
 	}
 
 	if len(groupOption.Proxies) != 0 {
 		ps, err := getProxies(proxyMap, groupOption.Proxies)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%s: %w", groupName, err)
 		}
 
 		if _, ok := providersMap[groupName]; ok {
-			return nil, errDuplicateProvider
+			return nil, fmt.Errorf("%s: %w", groupName, errDuplicateProvider)
 		}
 
 		// select don't need health check
@@ -68,20 +68,20 @@ func ParseProxyGroup(config map[string]any, proxyMap map[string]C.Proxy, provide
 			hc := provider.NewHealthCheck(ps, "", 0, true)
 			pd, err := provider.NewCompatibleProvider(groupName, ps, hc)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%s: %w", groupName, err)
 			}
 
 			providers = append(providers, pd)
 			providersMap[groupName] = pd
 		} else {
 			if groupOption.URL == "" || groupOption.Interval == 0 {
-				return nil, errMissHealthCheck
+				return nil, fmt.Errorf("%s: %w", groupName, errMissHealthCheck)
 			}
 
 			hc := provider.NewHealthCheck(ps, groupOption.URL, uint(groupOption.Interval), groupOption.Lazy)
 			pd, err := provider.NewCompatibleProvider(groupName, ps, hc)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%s: %w", groupName, err)
 			}
 
 			providers = append(providers, pd)
@@ -92,7 +92,7 @@ func ParseProxyGroup(config map[string]any, proxyMap map[string]C.Proxy, provide
 	if len(groupOption.Use) != 0 {
 		list, err := getProviders(providersMap, groupOption.Use)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%s: %w", groupName, err)
 		}
 		providers = append(providers, list...)
 	}
@@ -112,7 +112,7 @@ func ParseProxyGroup(config map[string]any, proxyMap map[string]C.Proxy, provide
 	case "relay":
 		group = NewRelay(groupOption, providers)
 	default:
-		return nil, fmt.Errorf("%w: %s", errType, groupOption.Type)
+		return nil, fmt.Errorf("%s %w: %s", groupName, errType, groupOption.Type)
 	}
 
 	return group, nil
