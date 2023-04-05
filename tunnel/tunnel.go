@@ -176,6 +176,7 @@ func resolveMetadata(ctx C.PlainContext, metadata *C.Metadata) (proxy C.Proxy, r
 func handleUDPConn(packet *inbound.PacketAdapter) {
 	metadata := packet.Metadata()
 	if !metadata.Valid() {
+		packet.Drop()
 		log.Warnln("[Metadata] not valid: %#v", metadata)
 		return
 	}
@@ -188,6 +189,7 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 	}
 
 	if err := preHandleMetadata(metadata); err != nil {
+		packet.Drop()
 		log.Debugln("[Metadata PreHandle] error: %s", err)
 		return
 	}
@@ -196,8 +198,10 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 	if !metadata.Resolved() {
 		ips, err := resolver.LookupIP(context.Background(), metadata.Host)
 		if err != nil {
+			packet.Drop()
 			return
 		} else if len(ips) == 0 {
+			packet.Drop()
 			return
 		}
 		metadata.DstIP = ips[0]
@@ -215,6 +219,7 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 	}
 
 	if handle() {
+		packet.Drop()
 		return
 	}
 
@@ -222,6 +227,8 @@ func handleUDPConn(packet *inbound.PacketAdapter) {
 	cond, loaded := natTable.GetOrCreateLock(lockKey)
 
 	go func() {
+		defer packet.Drop()
+
 		if loaded {
 			cond.L.Lock()
 			cond.Wait()
