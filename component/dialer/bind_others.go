@@ -1,56 +1,11 @@
-//go:build !linux && !darwin
+//go:build !linux && !darwin && !windows
 
 package dialer
 
 import (
 	"net"
 	"strconv"
-	"strings"
-
-	"github.com/Dreamacro/clash/component/iface"
 )
-
-func lookupLocalAddr(ifaceName string, network string, destination net.IP, port int) (net.Addr, error) {
-	ifaceObj, err := iface.ResolveInterface(ifaceName)
-	if err != nil {
-		return nil, err
-	}
-
-	var addr *net.IPNet
-	switch network {
-	case "udp4", "tcp4":
-		addr, err = ifaceObj.PickIPv4Addr(destination)
-	case "tcp6", "udp6":
-		addr, err = ifaceObj.PickIPv6Addr(destination)
-	default:
-		if destination != nil {
-			if destination.To4() != nil {
-				addr, err = ifaceObj.PickIPv4Addr(destination)
-			} else {
-				addr, err = ifaceObj.PickIPv6Addr(destination)
-			}
-		} else {
-			addr, err = ifaceObj.PickIPv4Addr(destination)
-		}
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	if strings.HasPrefix(network, "tcp") {
-		return &net.TCPAddr{
-			IP:   addr.IP,
-			Port: port,
-		}, nil
-	} else if strings.HasPrefix(network, "udp") {
-		return &net.UDPAddr{
-			IP:   addr.IP,
-			Port: port,
-		}, nil
-	}
-
-	return nil, iface.ErrAddrNotFound
-}
 
 func bindIfaceToDialer(ifaceName string, dialer *net.Dialer, network string, destination net.IP) error {
 	if !destination.IsGlobalUnicast() {
