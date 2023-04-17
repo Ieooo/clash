@@ -12,10 +12,11 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/Dreamacro/clash/common/pool"
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/transport/socks5"
 	"github.com/Dreamacro/clash/transport/vmess"
+
+	"github.com/Dreamacro/protobytes"
 )
 
 const (
@@ -105,15 +106,13 @@ func (t *Trojan) StreamWebsocketConn(conn net.Conn, wsOptions *WebsocketOption) 
 }
 
 func (t *Trojan) WriteHeader(w io.Writer, command Command, socks5Addr []byte) error {
-	buf := pool.GetBuffer()
-	defer pool.PutBuffer(buf)
+	buf := protobytes.BytesWriter{}
+	buf.PutSlice(t.hexPassword)
+	buf.PutSlice(crlf)
 
-	buf.Write(t.hexPassword)
-	buf.Write(crlf)
-
-	buf.WriteByte(command)
-	buf.Write(socks5Addr)
-	buf.Write(crlf)
+	buf.PutUint8(command)
+	buf.PutSlice(socks5Addr)
+	buf.PutSlice(crlf)
 
 	_, err := w.Write(buf.Bytes())
 	return err
@@ -126,14 +125,11 @@ func (t *Trojan) PacketConn(conn net.Conn) net.PacketConn {
 }
 
 func writePacket(w io.Writer, socks5Addr, payload []byte) (int, error) {
-	buf := pool.GetBuffer()
-	defer pool.PutBuffer(buf)
-
-	buf.Write(socks5Addr)
-	binary.Write(buf, binary.BigEndian, uint16(len(payload)))
-	buf.Write(crlf)
-	buf.Write(payload)
-
+	buf := protobytes.BytesWriter{}
+	buf.PutSlice(socks5Addr)
+	buf.PutUint16be(uint16(len(payload)))
+	buf.PutSlice(crlf)
+	buf.PutSlice(payload)
 	return w.Write(buf.Bytes())
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/Dreamacro/clash/log"
 	"github.com/Dreamacro/clash/tunnel/statistic"
 
+	"github.com/Dreamacro/protobytes"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
@@ -151,12 +152,12 @@ func traffic(w http.ResponseWriter, r *http.Request) {
 	tick := time.NewTicker(time.Second)
 	defer tick.Stop()
 	t := statistic.DefaultManager
-	buf := &bytes.Buffer{}
+	buf := protobytes.BytesWriter{}
 	var err error
 	for range tick.C {
 		buf.Reset()
 		up, down := t.Now()
-		if err := json.NewEncoder(buf).Encode(Traffic{
+		if err := json.NewEncoder(&buf).Encode(Traffic{
 			Up:   up,
 			Down: down,
 		}); err != nil {
