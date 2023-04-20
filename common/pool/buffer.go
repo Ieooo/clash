@@ -27,5 +27,5 @@ func GetBytesBuffer() *protobytes.BytesWriter {
 
 func PutBytesBuffer(buf *protobytes.BytesWriter) {
 	buf.Reset()
-	bufferPool.Put(buf)
+	bytesBufferPool.Put(buf)
 }
