@@ -68,8 +68,8 @@ func ServerHandshake(rw io.ReadWriter, authenticator auth.Authenticator) (addr s
 		return
 	}
 
-	dstAddr := r.ReadIPv4()
 	dstPort := r.ReadUint16be()
+	dstAddr := r.ReadIPv4()
 	if isReservedIP(dstAddr) {
 		var target []byte
 		if target, err = readUntilNull(rw); err != nil {
@@ -96,8 +96,8 @@ func ServerHandshake(rw io.ReadWriter, authenticator auth.Authenticator) (addr s
 	reply := protobytes.BytesWriter(make([]byte, 0, 8))
 	reply.PutUint8(0)    // reply code
 	reply.PutUint8(code) // result code
-	reply.PutSlice(dstAddr.AsSlice())
 	reply.PutUint16be(dstPort)
+	reply.PutSlice(dstAddr.AsSlice())
 
 	_, wErr := rw.Write(reply.Bytes())
 	if err == nil {
@@ -128,7 +128,7 @@ func ClientHandshake(rw io.ReadWriter, addr string, command Command, userID stri
 	req.PutUint8(Version)
 	req.PutUint8(command)
 	req.PutUint16be(uint16(port))
-	req.Write(ip.AsSlice())
+	req.PutSlice(ip.AsSlice())
 	req.PutString(userID)
 	req.PutUint8(0) /* NULL */
 
