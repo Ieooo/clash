@@ -106,7 +106,7 @@ body:
     attributes:
       render: Text
       label: 日志输出
-      placeholder: "在这里附上问题对应的内核日志（在配置中设置 `log-level: DEBUG` 可获得调试信息）"
+      placeholder: "在这里附上问题对应的内核日志（在配置中设置 `log-level: debug` 可获得调试信息）"
 
   - type: textarea
     attributes:

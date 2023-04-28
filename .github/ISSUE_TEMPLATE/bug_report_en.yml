@@ -108,7 +108,7 @@ body:
     attributes:
       render: Text
       label: Log
-      placeholder: "Please attach the corresponding core outout (setting `log-level: DEBUG` in the configuration provides debugging information)."
+      placeholder: "Please attach the corresponding core outout (setting `log-level: debug` in the configuration provides debugging information)."
 
   - type: textarea
     attributes:
