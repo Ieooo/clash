@@ -39,7 +39,7 @@ func handleUDPToLocal(packet C.UDPPacket, pc net.PacketConn, key string, oAddr, 
 			return
 		}
 
-		fromUDPAddr := from.(*net.UDPAddr)
+		fromUDPAddr := *from.(*net.UDPAddr)
 		if fAddr.IsValid() {
 			fromAddr, _ := netip.AddrFromSlice(fromUDPAddr.IP)
 			fromAddr = fromAddr.Unmap()
@@ -48,7 +48,7 @@ func handleUDPToLocal(packet C.UDPPacket, pc net.PacketConn, key string, oAddr, 
 			}
 		}
 
-		_, err = packet.WriteBack(buf[:n], fromUDPAddr)
+		_, err = packet.WriteBack(buf[:n], &fromUDPAddr)
 		if err != nil {
 			return
 		}
