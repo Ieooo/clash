@@ -10,7 +10,7 @@ function getMetadataFromDoc(path: string): { sidebarTitle?: string, sidebarOrder
 }
 
 function generateSidebarChapter(chapterDirName: string): any {
-  const chapterPath = `./docs/${chapterDirName}`
+  const chapterPath = `./${chapterDirName}`
   const tree = directoryTree(chapterPath)
 
   if (!tree || !tree.children) {
@@ -65,8 +65,10 @@ chapters[0]['items'][0]['link'] = '/'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "Clash",
-  description: "Rule-based Tunnel",
+  title: 'Clash',
+  description: 'Rule-based Tunnel',
+
+  base: '/clash/',
 
   themeConfig: {
     outline: 'deep',
