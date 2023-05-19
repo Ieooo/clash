@@ -82,7 +82,7 @@ export default defineConfig({
       text: 'Edit this page on GitHub'
     },
 
-    logo: '/clash/logo.png',
+    logo: '/logo.png',
 
     // https://vitepress.dev/reference/default-theme-config
     nav: [
