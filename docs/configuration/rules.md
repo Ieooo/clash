@@ -122,7 +122,7 @@ IPSET rules are used to match against an IP set and route packets based on the r
 This feature only works on Linux and requires `ipset` to be installed.
 :::
 
-`PROCESS-PATH,/bin/sh,DIRECT` routes all packets from the process `/bin/sh` to the `DIRECT` outbound.
+`IPSET,chinaip,DIRECT` routes all packets with destination IPs matching the `chinaip` IPSET to DIRECT outbound.
 
 ### RULE-SET
 
@@ -150,4 +150,4 @@ When encountering this rule, Clash will resolve the domain name to an IP address
 
 ### MATCH
 
-`MATCH,policy` routes the rest of the packets to `policy`. This rule is **required**.
+`MATCH,policy` routes the rest of the packets to `policy`. This rule is **required** and is usually used as the last rule.
