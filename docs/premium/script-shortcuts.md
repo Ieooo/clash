@@ -17,6 +17,7 @@ This feature enables the use of script in `rules` mode. By default, DNS resoluti
 mode: Rule
 
 script:
+  engine: expr # or starlark (10x to 20x slower)
   shortcuts:
     quic: network == 'udp' and dst_port == 443
     curl: resolve_process_name() == 'curl'
