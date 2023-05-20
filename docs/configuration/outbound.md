@@ -11,7 +11,7 @@ There are several types of outbound targets in Clash. Each type has its own feat
 
 ## Proxies
 
-Proxies are the basic type of outbound targets.
+Proxies are some outbound targets that you can configure. Like proxy servers, you define destinations for the packets here.
 
 ### Shadowsocks
 
@@ -23,7 +23,7 @@ Clash supports the following ciphers (encryption methods) for Shadowsocks:
 | Stream | aes-128-cfb, aes-192-cfb, aes-256-cfb, rc4-md5, chacha20-ietf, xchacha20 |
 | Block | aes-128-ctr, aes-192-ctr, aes-256-ctr |
 
-In addition, Clash also supports popular Shadsocks plugins `obfs` and `v2ray-plugin`.
+In addition, Clash also supports popular Shadowsocks plugins `obfs` and `v2ray-plugin`.
 
 ::: code-group
 
@@ -100,7 +100,8 @@ Supported protocols:
 - auth_sha1_v4
 - auth_aes128_md5
 - auth_aes128_sha1
-- auth_chain_a auth_chain_b
+- auth_chain_a
+- auth_chain_b
 
 ```yaml
 - name: "ssr"
@@ -267,6 +268,10 @@ Clash also supports HTTP outbound:
 ### Snell
 
 Being an alternative protocol for anti-censorship, Clash has integrated support for Snell as well.
+
+::: tip
+Clash does not support Snell v4. ([#2466](https://github.com/Dreamacro/clash/issues/2466))
+:::
 
 ```yaml
 # No UDP support yet
