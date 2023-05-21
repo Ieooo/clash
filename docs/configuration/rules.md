@@ -59,7 +59,7 @@ When encountering this rule, Clash will resolve the domain name to an IP address
 IP-CIDR rules are used to route packets based on the **destination IPv4 address** of the packet.
 
 ::: warning
-When encountering this rule, Clash will resolve the domain name to an IP address and then look up the country code of the IP address. If you want to skip the DNS resolution, use `no-resolve` option.
+When encountering this rule, Clash will resolve the domain name to an IP address. If you want to skip the DNS resolution, use `no-resolve` option.
 :::
 
 `IP-CIDR,127.0.0.0/8,DIRECT` routes any packets destined to `127.0.0.0/8` to the `DIRECT` outbound.
@@ -69,7 +69,7 @@ When encountering this rule, Clash will resolve the domain name to an IP address
 IP-CIDR6 rules are used to route packets based on the **destination IPv6 address** of the packet.
 
 ::: warning
-When encountering this rule, Clash will resolve the domain name to an IP address and then look up the country code of the IP address. If you want to skip the DNS resolution, use `no-resolve` option.
+When encountering this rule, Clash will resolve the domain name to an IP address. If you want to skip the DNS resolution, use `no-resolve` option.
 :::
 
 `IP-CIDR6,2620:0:2d0:200::7/32,policy` routes any packets destined to `2620:0:2d0:200::7/32` to `policy`.
@@ -118,8 +118,10 @@ IPSET rules are used to match against an IP set and route packets based on the r
 
 > IP sets are a framework inside the Linux kernel, which can be administered by the ipset utility. Depending on the type, an IP set may store IP addresses, networks, (TCP/UDP) port numbers, MAC addresses, interface names or combinations of them in a way, which ensures lightning speed when matching an entry against a set.
 
+Therefore, this feature only works on Linux and requires `ipset` to be installed.
+
 ::: warning
-This feature only works on Linux and requires `ipset` to be installed.
+When encountering this rule, Clash will resolve the domain name to an IP address. If you want to skip the DNS resolution, use `no-resolve` option.
 :::
 
 `IPSET,chinaip,DIRECT` routes all packets with destination IPs matching the `chinaip` IPSET to DIRECT outbound.
@@ -132,6 +134,10 @@ This feature is only available in the [Premium](/premium/introduction) edtion.
 
 RULE-SET rules are used to route packets based on the result of a [rule provider](/premium/rule-providers). When Clash encounters this rule, it loads the rules from the specified rule provider and then matches the packet against the rules. If the packet matches any of the rules, the packet will be routed to the specified policy, otherwise the rule is skipped.
 
+::: warning
+When encountering RULE-SET, Clash will resolve the domain name to an IP address **when the ruleset is of type IPCIDR**. If you want to skip the DNS resolution, use `no-resolve` option for the RULE-SET entry.
+:::
+
 `RULE-SET,my-rule-provider,DIRECT` loads all rules from `my-rule-provider` and sends the matched packets to the `DIRECT` outbound.
 
 ### SCRIPT
@@ -143,7 +149,7 @@ This feature is only available in the [Premium](/premium/introduction) edtion.
 SCRIPT rules are special rules that are used to route packets based on the result of a [script shortcut](/premium/script-shortcuts). When Clash encounters this rule, it evaluates the expression. If it returns `true`, the packet will be routed to the specified policy, otherwise the rule is skipped.
 
 ::: warning
-When encountering this rule, Clash will resolve the domain name to an IP address and then look up the country code of the IP address. If you want to skip the DNS resolution, use `no-resolve` option.
+When encountering this rule, Clash will resolve the domain name to an IP address. If you want to skip the DNS resolution, use `no-resolve` option.
 :::
 
 `SCRIPT,SHORTCUT-NAME,policy` routes any packets to `policy` if they have the shortcut evaluated `true`.
