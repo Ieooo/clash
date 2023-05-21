@@ -9,6 +9,28 @@ Here we have some common questions people ask. If you have any questions not lis
 
 [[toc]]
 
+## What is the difference between amd64 and amd64-v3?
+
+Quoting from [golang/go](https://github.com/golang/go/wiki/MinimumRequirements#amd64):
+
+> Until Go 1.17, the Go compiler always generated x86 binaries that could be executed by any 64-bit x86 processor.
+> 
+> Go 1.18 introduced [4 architectural levels](https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels) for AMD64.
+> Each level differs in the set of x86 instructions that the compiler can include in the generated binaries:
+> 
+> * GOAMD64=v1 (default): The baseline. Exclusively generates instructions that all 64-bit x86 processors can execute.
+> * GOAMD64=v2: all v1 instructions, plus CMPXCHG16B, LAHF, SAHF, POPCNT, SSE3, SSE4.1, SSE4.2, SSSE3.
+> * GOAMD64=v3: all v2 instructions, plus AVX, AVX2, BMI1, BMI2, F16C, FMA, LZCNT, MOVBE, OSXSAVE.
+> * GOAMD64=v4: all v3 instructions, plus AVX512F, AVX512BW, AVX512CD, AVX512DQ, AVX512VL.
+> 
+> Setting, for example, GOAMD64=v3, will allow the Go compiler to use AVX2 instructions in the generated binaries (which may improve performance in some cases); but these binaries will not run on older x86 processors that don't support AVX2.
+> 
+> The Go toolchain may also generate newer instructions, but guarded by dynamic checks to ensure they're only executed on capable processors. For example, with GOAMD64=v1, [math/bits.OnesCount](https://pkg.go.dev/math/bits#OnesCount) will still use the [POPCNT](https://www.felixcloutier.com/x86/popcnt) instruction if [CPUID](https://www.felixcloutier.com/x86/cpuid) reports that it's available. Otherwise, it falls back to a generic implementation.
+> 
+> The Go toolchain does not currently generate any AVX512 instructions.
+> 
+> Note that *processor* is a simplification in this context. In practice, support from the entire system (firmware, hypervisor, kernel) is needed.
+
 ## Which release should I use for my system?
 
 Here are some common systems that people use Clash on, and the recommended release for each of them:
