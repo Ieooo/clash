@@ -45,9 +45,10 @@ Clash do offer support on matching different levels of wildcard domains in the D
 
 ::: tip
 Any domain with these characters should be wrapped with single quotes (`'`). For example, `'*.google.com'`.
+Static domain has a higher priority than wildcard domain (foo.example.com > *.example.com > .example.com).
 :::
 
-Use an astrisk (`*`) to match against a single-level wildcard subdomain.
+Use an asterisk (`*`) to match against a single-level wildcard subdomain.
 
 | Expression | Matches | Does Not Match |
 | ---------- | ------- | -------------- |
@@ -55,10 +56,21 @@ Use an astrisk (`*`) to match against a single-level wildcard subdomain.
 | `*.bar.google.com` | `foo.bar.google.com` | `bar.google.com` |
 | `*.*.google.com` | `thoughtful.sandbox.google.com` | `one.two.three.google.com` |
 
-Use a plus sign (`+`) to match against multi-level wildcard subdomains.
+Use a dot sign (`.`) to match against multi-level wildcard subdomains.
 
 | Expression | Matches | Does Not Match |
 | ---------- | ------- | -------------- |
-| `+.google.com` | `www.google.com` | `www.google.com` |
-| `+.google.com` | `thoughtful.sandbox.google.com` | `www.google.com` |
-| `+.google.com` | `one.two.three.google.com` | `www.google.com` |
+| `.google.com` | `www.google.com` | `google.com` |
+| `.google.com` | `thoughtful.sandbox.google.com` | `google.com` |
+| `.google.com` | `one.two.three.google.com` | `google.com` |
+
+Use a plus sign (`+`) to match against multi-level wildcard subdomains.
+
+`+` wildcard works like DOMAIN-SUFFIX, you can quickly match multi level at a time.
+
+| Expression | Matches |
+| ---------- | ------- |
+| `+.google.com` | `google.com` |
+| `+.google.com` | `www.google.com` |
+| `+.google.com` | `thoughtful.sandbox.google.com` |
+| `+.google.com` | `one.two.three.google.com` |
