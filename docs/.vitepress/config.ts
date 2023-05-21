@@ -37,7 +37,7 @@ function generateSidebarChapter(chapterDirName: string): any {
     items.push({
       sidebarOrder,
       text: sidebarTitle,
-      link: doc.path.replace(/^docs/, '')
+      link: "/" + doc.path
     })
   }
 
@@ -48,6 +48,7 @@ function generateSidebarChapter(chapterDirName: string): any {
 
   return {
     text,
+    collapsed: false,
     items,
   }
 }
@@ -87,7 +88,7 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Configuration', link: '/configuration/configuration-reference.md' },
+      { text: 'Configuration', link: '/configuration/configuration-reference' },
       {
         text: 'Download',
         items: [
