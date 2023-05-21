@@ -71,6 +71,13 @@ export default defineConfig({
 
   base: '/clash/',
 
+  head: [
+    [
+      'link',
+      { rel: 'icon', type: "image/x-icon", href: '/clash/logo.png' }
+    ],
+  ],
+
   themeConfig: {
     outline: 'deep',
 
