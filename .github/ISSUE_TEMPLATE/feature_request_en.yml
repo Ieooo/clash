@@ -27,7 +27,7 @@ body:
           required: true
         - label: "I have looked for my idea in [the issue tracker](https://github.com/Dreamacro/clash/issues?q=is%3Aissue+label%3Aenhancement), **and found none of which being related**"
           required: true
-        - label: "I have read the [official Wiki](https://github.com/Dreamacro/clash/wiki/)"
+        - label: "I have read the [official Wiki](https://dreamacro.github.io/clash/)"
           required: true
 
   - type: textarea

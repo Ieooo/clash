@@ -31,7 +31,7 @@ body:
           required: true
         - label: "I have searched at the [Issue Tracker](……/) **and have not found any related issues**"
           required: true
-        - label: "I have read the [official Wiki](https://github.com/Dreamacro/clash/wiki/) **and was unable to solve the issue**"
+        - label: "I have read the [official Wiki](https://dreamacro.github.io/clash/) **and was unable to solve the issue**"
           required: true
         - label: "(required for Premium core) I've tried the `dev` branch and the issue still exists"
           required: false
