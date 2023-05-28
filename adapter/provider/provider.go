@@ -300,6 +300,9 @@ func (fp *FilterableProvider) Proxies() []C.Proxy {
 }
 
 func (fp *FilterableProvider) Touch() {
+	for _, provider := range fp.providers {
+		provider.Touch()
+	}
 }
 
 func NewFilterableProvider(name string, providers []types.ProxyProvider, filterReg *regexp.Regexp) *FilterableProvider {
