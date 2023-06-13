@@ -76,7 +76,7 @@ func (l *PacketConn) handleUDP(pc net.PacketConn, in chan<- *inbound.PacketAdapt
 		payload: buf,
 	}
 
-	ctx := inbound.NewPacket(l.target, packet, C.TUNNEL)
+	ctx := inbound.NewPacket(l.target, pc.LocalAddr(), packet, C.TUNNEL)
 	ctx.Metadata().SpecialProxy = l.proxy
 	select {
 	case in <- ctx:

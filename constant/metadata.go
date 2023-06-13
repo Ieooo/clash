@@ -3,6 +3,7 @@ package constant
 import (
 	"encoding/json"
 	"net"
+	"net/netip"
 	"strconv"
 
 	"github.com/Dreamacro/clash/transport/socks5"
@@ -72,6 +73,8 @@ type Metadata struct {
 	DNSMode      DNSMode `json:"dnsMode"`
 	ProcessPath  string  `json:"processPath"`
 	SpecialProxy string  `json:"specialProxy"`
+
+	OriginDst netip.AddrPort `json:"-"`
 }
 
 func (m *Metadata) RemoteAddress() string {

@@ -4,22 +4,14 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"net"
+	"net/netip"
 	"os"
-	"path/filepath"
-	"strings"
-	"syscall"
-	"unicode"
 	"unsafe"
+
+	"github.com/Dreamacro/clash/common/pool"
 
 	"github.com/mdlayher/netlink"
 	"golang.org/x/sys/unix"
-)
-
-const (
-	SOCK_DIAG_BY_FAMILY  = 20
-	inetDiagRequestSize  = int(unsafe.Sizeof(inetDiagRequest{}))
-	inetDiagResponseSize = int(unsafe.Sizeof(inetDiagResponse{}))
 )
 
 type inetDiagRequest struct {
@@ -57,42 +49,49 @@ type inetDiagResponse struct {
 	INode   uint32
 }
 
-func findProcessName(network string, ip net.IP, srcPort int) (string, error) {
-	inode, uid, err := resolveSocketByNetlink(network, ip, srcPort)
+func findProcessPath(network string, from netip.AddrPort, to netip.AddrPort) (string, error) {
+	inode, uid, err := resolveSocketByNetlink(network, from, to)
 	if err != nil {
 		return "", err
 	}
 
-	return resolveProcessNameByProcSearch(inode, uid)
+	return resolveProcessPathByProcSearch(inode, uid)
 }
 
-func resolveSocketByNetlink(network string, ip net.IP, srcPort int) (uint32, uint32, error) {
+func resolveSocketByNetlink(network string, from netip.AddrPort, to netip.AddrPort) (inode uint32, uid uint32, err error) {
 	request := &inetDiagRequest{
 		States: 0xffffffff,
 		Cookie: [2]uint32{0xffffffff, 0xffffffff},
 	}
 
-	if ip.To4() != nil {
+	if from.Addr().Is4() {
 		request.Family = unix.AF_INET
 	} else {
 		request.Family = unix.AF_INET6
 	}
 
-	if strings.HasPrefix(network, "tcp") {
+	// Swap src & dst for udp
+	// See also https://www.mail-archive.com/netdev@vger.kernel.org/msg248638.html
+	switch network {
+	case TCP:
 		request.Protocol = unix.IPPROTO_TCP
-	} else if strings.HasPrefix(network, "udp") {
+
+		copy(request.Src[:], from.Addr().AsSlice())
+		copy(request.Dst[:], to.Addr().AsSlice())
+
+		binary.BigEndian.PutUint16(request.SrcPort[:], from.Port())
+		binary.BigEndian.PutUint16(request.DstPort[:], to.Port())
+	case UDP:
 		request.Protocol = unix.IPPROTO_UDP
-	} else {
+
+		copy(request.Dst[:], from.Addr().AsSlice())
+		copy(request.Src[:], to.Addr().AsSlice())
+
+		binary.BigEndian.PutUint16(request.DstPort[:], from.Port())
+		binary.BigEndian.PutUint16(request.SrcPort[:], to.Port())
+	default:
 		return 0, 0, ErrInvalidNetwork
 	}
-
-	if v4 := ip.To4(); v4 != nil {
-		copy(request.Src[:], v4)
-	} else {
-		copy(request.Src[:], ip)
-	}
-
-	binary.BigEndian.PutUint16(request.SrcPort[:], uint16(srcPort))
 
 	conn, err := netlink.Dial(unix.NETLINK_INET_DIAG, nil)
 	if err != nil {
@@ -102,10 +101,10 @@ func resolveSocketByNetlink(network string, ip net.IP, srcPort int) (uint32, uin
 
 	message := netlink.Message{
 		Header: netlink.Header{
-			Type:  SOCK_DIAG_BY_FAMILY,
-			Flags: netlink.Request | netlink.Dump,
+			Type:  20, // SOCK_DIAG_BY_FAMILY
+			Flags: netlink.Request,
 		},
-		Data: (*(*[inetDiagRequestSize]byte)(unsafe.Pointer(request)))[:],
+		Data: (*(*[unsafe.Sizeof(*request)]byte)(unsafe.Pointer(request)))[:],
 	}
 
 	messages, err := conn.Execute(message)
@@ -114,7 +113,7 @@ func resolveSocketByNetlink(network string, ip net.IP, srcPort int) (uint32, uin
 	}
 
 	for _, msg := range messages {
-		if len(msg.Data) < inetDiagResponseSize {
+		if len(msg.Data) < int(unsafe.Sizeof(inetDiagResponse{})) {
 			continue
 		}
 
@@ -126,53 +125,82 @@ func resolveSocketByNetlink(network string, ip net.IP, srcPort int) (uint32, uin
 	return 0, 0, ErrNotFound
 }
 
-func resolveProcessNameByProcSearch(inode, uid uint32) (string, error) {
-	files, err := os.ReadDir("/proc")
+func resolveProcessPathByProcSearch(inode, uid uint32) (string, error) {
+	procDir, err := os.Open("/proc")
+	if err != nil {
+		return "", err
+	}
+	defer procDir.Close()
+
+	pids, err := procDir.Readdirnames(-1)
 	if err != nil {
 		return "", err
 	}
 
-	buffer := make([]byte, unix.PathMax)
-	socket := fmt.Appendf(nil, "socket:[%d]", inode)
+	expectedSocketName := fmt.Appendf(nil, "socket:[%d]", inode)
 
-	for _, f := range files {
-		if !f.IsDir() || !isPid(f.Name()) {
+	pathBuffer := pool.Get(64)
+	defer pool.Put(pathBuffer)
+
+	readlinkBuffer := pool.Get(32)
+	defer pool.Put(readlinkBuffer)
+
+	copy(pathBuffer, "/proc/")
+
+	for _, pid := range pids {
+		if !isPid(pid) {
 			continue
 		}
 
-		info, err := f.Info()
+		pathBuffer = append(pathBuffer[:len("/proc/")], pid...)
+
+		stat := &unix.Stat_t{}
+		err = unix.Stat(string(pathBuffer), stat)
 		if err != nil {
-			return "", err
-		}
-		if info.Sys().(*syscall.Stat_t).Uid != uid {
+			continue
+		} else if stat.Uid != uid {
 			continue
 		}
 
-		processPath := filepath.Join("/proc", f.Name())
-		fdPath := filepath.Join(processPath, "fd")
+		pathBuffer = append(pathBuffer, "/fd/"...)
+		fdsPrefixLength := len(pathBuffer)
 
-		fds, err := os.ReadDir(fdPath)
+		fdDir, err := os.Open(string(pathBuffer))
+		if err != nil {
+			continue
+		}
+
+		fds, err := fdDir.Readdirnames(-1)
+		fdDir.Close()
 		if err != nil {
 			continue
 		}
 
 		for _, fd := range fds {
-			n, err := unix.Readlink(filepath.Join(fdPath, fd.Name()), buffer)
+			pathBuffer = pathBuffer[:fdsPrefixLength]
+
+			pathBuffer = append(pathBuffer, fd...)
+
+			n, err := unix.Readlink(string(pathBuffer), readlinkBuffer)
 			if err != nil {
 				continue
 			}
 
-			if bytes.Equal(buffer[:n], socket) {
-				return os.Readlink(filepath.Join(processPath, "exe"))
+			if bytes.Equal(readlinkBuffer[:n], expectedSocketName) {
+				return os.Readlink("/proc/" + pid + "/exe")
 			}
 		}
 	}
 
-	return "", fmt.Errorf("process of uid(%d),inode(%d) not found", uid, inode)
+	return "", fmt.Errorf("inode %d of uid %d not found", inode, uid)
 }
 
-func isPid(s string) bool {
-	return strings.IndexFunc(s, func(r rune) bool {
-		return !unicode.IsDigit(r)
-	}) == -1
+func isPid(name string) bool {
+	for _, c := range name {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+
+	return true
 }
