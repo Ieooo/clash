@@ -46,7 +46,7 @@ func findPidByConnectionEndpoint(family uint32, protocol uint32, from netip.Addr
 	buf := pool.Get(8)
 	defer pool.Put(buf)
 
-	bufSize := len(buf)
+	bufSize := uint32(len(buf))
 
 loop:
 	for {
@@ -82,7 +82,7 @@ loop:
 			break loop
 		case uintptr(windows.ERROR_INSUFFICIENT_BUFFER):
 			pool.Put(buf)
-			buf = pool.Get(bufSize)
+			buf = pool.Get(int(bufSize))
 
 			continue loop
 		default:
