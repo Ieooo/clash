@@ -7,8 +7,6 @@ import (
 	"unsafe"
 
 	"golang.org/x/sys/windows"
-
-	"github.com/Dreamacro/clash/common/pool"
 )
 
 var (
@@ -43,10 +41,8 @@ func findProcessPath(network string, from netip.AddrPort, to netip.AddrPort) (st
 }
 
 func findPidByConnectionEndpoint(family uint32, protocol uint32, from netip.AddrPort, to netip.AddrPort) (uint32, error) {
-	buf := pool.Get(8)
-	defer pool.Put(buf)
-
-	bufSize := uint32(len(buf))
+	buf := []byte(nil)
+	bufSize := uint32(0)
 
 loop:
 	for {
@@ -55,7 +51,7 @@ loop:
 		switch protocol {
 		case windows.IPPROTO_TCP:
 			ret, _, _ = procGetExtendedTcpTable.Call(
-				uintptr(unsafe.Pointer(&buf[0])),
+				uintptr(unsafe.Pointer(unsafe.SliceData(buf))),
 				uintptr(unsafe.Pointer(&bufSize)),
 				0,
 				uintptr(family),
@@ -64,7 +60,7 @@ loop:
 			)
 		case windows.IPPROTO_UDP:
 			ret, _, _ = procGetExtendedUdpTable.Call(
-				uintptr(unsafe.Pointer(&buf[0])),
+				uintptr(unsafe.Pointer(unsafe.SliceData(buf))),
 				uintptr(unsafe.Pointer(&bufSize)),
 				0,
 				uintptr(family),
@@ -81,8 +77,7 @@ loop:
 
 			break loop
 		case uintptr(windows.ERROR_INSUFFICIENT_BUFFER):
-			pool.Put(buf)
-			buf = pool.Get(int(bufSize))
+			buf = make([]byte, bufSize)
 
 			continue loop
 		default:
