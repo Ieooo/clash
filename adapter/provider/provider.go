@@ -54,7 +54,7 @@ func (pp *proxySetProvider) Name() string {
 }
 
 func (pp *proxySetProvider) HealthCheck() {
-	pp.healthCheck.check()
+	pp.healthCheck.checkAll()
 }
 
 func (pp *proxySetProvider) Update() error {
@@ -91,7 +91,7 @@ func (pp *proxySetProvider) setProxies(proxies []C.Proxy) {
 	pp.proxies = proxies
 	pp.healthCheck.setProxy(proxies)
 	if pp.healthCheck.auto() {
-		go pp.healthCheck.check()
+		go pp.healthCheck.checkAll()
 	}
 }
 
@@ -186,7 +186,7 @@ func (cp *compatibleProvider) Name() string {
 }
 
 func (cp *compatibleProvider) HealthCheck() {
-	cp.healthCheck.check()
+	cp.healthCheck.checkAll()
 }
 
 func (cp *compatibleProvider) Update() error {
