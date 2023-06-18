@@ -18,8 +18,10 @@ func NewHTTP(target socks5.Addr, source net.Addr, originTarget net.Addr, conn ne
 		metadata.SrcIP = ip
 		metadata.SrcPort = port
 	}
-	if addrPort, err := netip.ParseAddrPort(originTarget.String()); err == nil {
-		metadata.OriginDst = addrPort
+	if originTarget != nil {
+		if addrPort, err := netip.ParseAddrPort(originTarget.String()); err == nil {
+			metadata.OriginDst = addrPort
+		}
 	}
 	return context.NewConnContext(conn, metadata)
 }
