@@ -7,6 +7,8 @@ import (
 	"unsafe"
 
 	"golang.org/x/sys/windows"
+
+	"github.com/Dreamacro/clash/common/pool"
 )
 
 var (
@@ -41,8 +43,10 @@ func findProcessPath(network string, from netip.AddrPort, to netip.AddrPort) (st
 }
 
 func findPidByConnectionEndpoint(family uint32, protocol uint32, from netip.AddrPort, to netip.AddrPort) (uint32, error) {
-	buf := []byte(nil)
-	bufSize := uint32(0)
+	buf := pool.Get(0)
+	defer pool.Put(buf)
+
+	bufSize := uint32(len(buf))
 
 loop:
 	for {
@@ -77,7 +81,8 @@ loop:
 
 			break loop
 		case uintptr(windows.ERROR_INSUFFICIENT_BUFFER):
-			buf = make([]byte, bufSize)
+			pool.Put(buf)
+			buf = pool.Get(int(bufSize))
 
 			continue loop
 		default:
