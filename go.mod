@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/Dreamacro/protobytes v0.0.0-20230324064118-87bc784139cd
+	github.com/dlclark/regexp2 v1.10.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/render v1.0.2
