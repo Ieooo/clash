@@ -23,32 +23,32 @@ type InEndpoints12 struct {
 
 type XTcpcb12 struct {
 	Len         uint32        // offset 0
-	Padding1    [20]byte      // offset 4
+	_           [20]byte      // offset 4
 	SocketAddr  uint64        // offset 24
-	Padding2    [84]byte      // offset 32
+	_           [84]byte      // offset 32
 	Family      uint32        // offset 116
-	Padding3    [140]byte     // offset 120
+	_           [140]byte     // offset 120
 	InEndpoints InEndpoints12 // offset 260
-	Padding4    [444]byte     // offset 300
+	_           [444]byte     // offset 300
 } // size 744
 
 type XInpcb12 struct {
 	Len         uint32        // offset 0
-	Padding1    [12]byte      // offset 4
+	_           [12]byte      // offset 4
 	SocketAddr  uint64        // offset 16
-	Padding2    [84]byte      // offset 24
+	_           [84]byte      // offset 24
 	Family      uint32        // offset 108
-	Padding3    [140]byte     // offset 112
+	_           [140]byte     // offset 112
 	InEndpoints InEndpoints12 // offset 252
-	Padding4    [108]byte     // offset 292
+	_           [108]byte     // offset 292
 } // size 400
 
 type XFile12 struct {
 	Size     uint64   // offset 0
 	Pid      uint32   // offset 8
-	Padding1 [44]byte // offset 12
+	_        [44]byte // offset 12
 	DataAddr uint64   // offset 56
-	Padding2 [64]byte // offset 64
+	_        [64]byte // offset 64
 } // size 128
 
 var majorVersion = func() int {
@@ -144,7 +144,6 @@ func findProcessPath12(network string, from netip.AddrPort, to netip.AddrPort) (
 			data = data[icb.Len:]
 
 			var connFromAddr netip.Addr
-
 			if icb.Family == unix.AF_INET {
 				connFromAddr = netip.AddrFrom4([4]byte(icb.InEndpoints.LAddr[12:16]))
 			} else if icb.Family == unix.AF_INET6 {
@@ -153,9 +152,9 @@ func findProcessPath12(network string, from netip.AddrPort, to netip.AddrPort) (
 				continue
 			}
 
-			connFrom := netip.AddrPortFrom(connFromAddr, binary.BigEndian.Uint16(icb.InEndpoints.LPort[:]))
+			connFromPort := binary.BigEndian.Uint16(icb.InEndpoints.LPort[:])
 
-			if connFrom == from {
+			if (connFromAddr == from.Addr() || connFromAddr.IsUnspecified()) && connFromPort == from.Port() {
 				pid, err := findPidBySocketAddr12(icb.SocketAddr)
 				if err != nil {
 					return "", err
@@ -208,7 +207,8 @@ func findExecutableByPid(pid uint32) (string, error) {
 		uintptr(unsafe.Pointer(&buf[0])),
 		uintptr(unsafe.Pointer(&size)),
 		0,
-		0)
+		0,
+	)
 	if errno != 0 || size == 0 {
 		return "", fmt.Errorf("sysctl: get proc name: %w", errno)
 	}

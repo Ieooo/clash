@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"net"
 	"net/netip"
 	"os"
 	"unsafe"
@@ -59,39 +60,64 @@ func findProcessPath(network string, from netip.AddrPort, to netip.AddrPort) (st
 }
 
 func resolveSocketByNetlink(network string, from netip.AddrPort, to netip.AddrPort) (inode uint32, uid uint32, err error) {
-	request := &inetDiagRequest{
-		States: 0xffffffff,
-		Cookie: [2]uint32{0xffffffff, 0xffffffff},
-	}
-
-	if from.Addr().Is4() {
-		request.Family = unix.AF_INET
+	var families []byte
+	if from.Addr().Unmap().Is4() {
+		families = []byte{unix.AF_INET, unix.AF_INET6}
 	} else {
-		request.Family = unix.AF_INET6
+		families = []byte{unix.AF_INET6, unix.AF_INET}
 	}
 
-	// Swap src & dst for udp
-	// See also https://www.mail-archive.com/netdev@vger.kernel.org/msg248638.html
+	var protocol byte
 	switch network {
 	case TCP:
-		request.Protocol = unix.IPPROTO_TCP
-
-		copy(request.Src[:], from.Addr().AsSlice())
-		copy(request.Dst[:], to.Addr().AsSlice())
-
-		binary.BigEndian.PutUint16(request.SrcPort[:], from.Port())
-		binary.BigEndian.PutUint16(request.DstPort[:], to.Port())
+		protocol = unix.IPPROTO_TCP
 	case UDP:
-		request.Protocol = unix.IPPROTO_UDP
-
-		copy(request.Dst[:], from.Addr().AsSlice())
-		copy(request.Src[:], to.Addr().AsSlice())
-
-		binary.BigEndian.PutUint16(request.DstPort[:], from.Port())
-		binary.BigEndian.PutUint16(request.SrcPort[:], to.Port())
+		protocol = unix.IPPROTO_UDP
 	default:
 		return 0, 0, ErrInvalidNetwork
 	}
+
+	if protocol == unix.IPPROTO_UDP {
+		// Swap from & to for udp
+		// See also https://www.mail-archive.com/netdev@vger.kernel.org/msg248638.html
+		from, to = to, from
+	}
+
+	for _, family := range families {
+		inode, uid, err = resolveSocketByNetlinkExact(family, protocol, from, to, netlink.Request)
+		if err == nil {
+			return inode, uid, err
+		}
+	}
+
+	return 0, 0, ErrNotFound
+}
+
+func resolveSocketByNetlinkExact(family byte, protocol byte, from netip.AddrPort, to netip.AddrPort, flags netlink.HeaderFlags) (inode uint32, uid uint32, err error) {
+	request := &inetDiagRequest{
+		Family:   family,
+		Protocol: protocol,
+		States:   0xffffffff,
+		Cookie:   [2]uint32{0xffffffff, 0xffffffff},
+	}
+
+	var (
+		fromAddr []byte
+		toAddr   []byte
+	)
+	if family == unix.AF_INET {
+		fromAddr = net.IP(from.Addr().AsSlice()).To4()
+		toAddr = net.IP(to.Addr().AsSlice()).To4()
+	} else {
+		fromAddr = net.IP(from.Addr().AsSlice()).To16()
+		toAddr = net.IP(to.Addr().AsSlice()).To16()
+	}
+
+	copy(request.Src[:], fromAddr)
+	copy(request.Dst[:], toAddr)
+
+	binary.BigEndian.PutUint16(request.SrcPort[:], from.Port())
+	binary.BigEndian.PutUint16(request.DstPort[:], to.Port())
 
 	conn, err := netlink.Dial(unix.NETLINK_INET_DIAG, nil)
 	if err != nil {
@@ -102,7 +128,7 @@ func resolveSocketByNetlink(network string, from netip.AddrPort, to netip.AddrPo
 	message := netlink.Message{
 		Header: netlink.Header{
 			Type:  20, // SOCK_DIAG_BY_FAMILY
-			Flags: netlink.Request,
+			Flags: flags,
 		},
 		Data: (*(*[unsafe.Sizeof(*request)]byte)(unsafe.Pointer(request)))[:],
 	}

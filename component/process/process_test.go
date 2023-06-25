@@ -28,7 +28,7 @@ func testConn(t *testing.T, network, address string) {
 	}
 	defer rConn.Close()
 
-	path, err := FindProcessPath(TCP, netip.MustParseAddrPort(conn.LocalAddr().String()), netip.MustParseAddrPort(conn.RemoteAddr().String()))
+	path, err := FindProcessPath(TCP, conn.LocalAddr().(*net.TCPAddr).AddrPort(), conn.RemoteAddr().(*net.TCPAddr).AddrPort())
 	if err != nil {
 		assert.FailNow(t, "Find process path failed", err)
 	}
@@ -68,7 +68,12 @@ func testPacketConn(t *testing.T, network, lAddress, rAddress string) {
 		assert.FailNow(t, "Send message failed", err)
 	}
 
-	path, err := FindProcessPath(UDP, netip.MustParseAddrPort(lConn.LocalAddr().String()), netip.MustParseAddrPort(rConn.LocalAddr().String()))
+	_, lAddr, err := rConn.ReadFrom([]byte{0})
+	if err != nil {
+		assert.FailNow(t, "Receive message failed", err)
+	}
+
+	path, err := FindProcessPath(UDP, lAddr.(*net.UDPAddr).AddrPort(), rConn.LocalAddr().(*net.UDPAddr).AddrPort())
 	if err != nil {
 		assert.FailNow(t, "Find process path", err)
 	}
@@ -87,6 +92,12 @@ func TestFindProcessPathUDP(t *testing.T) {
 	})
 	t.Run("v6", func(t *testing.T) {
 		testPacketConn(t, "udp6", "[::1]:0", "[::1]:0")
+	})
+	t.Run("v4AnyLocal", func(t *testing.T) {
+		testPacketConn(t, "udp4", "0.0.0.0:0", "127.0.0.1:0")
+	})
+	t.Run("v6AnyLocal", func(t *testing.T) {
+		testPacketConn(t, "udp6", "[::]:0", "[::1]:0")
 	})
 }
 

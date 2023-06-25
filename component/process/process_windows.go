@@ -168,7 +168,7 @@ loop:
 				localAddr := netip.AddrFrom4(entry.LocalAddr)
 				localPort := windows.Ntohs(uint16(entry.LocalPort))
 
-				if localAddr == from.Addr() && localPort == from.Port() {
+				if (localAddr == from.Addr() || localAddr.IsUnspecified()) && localPort == from.Port() {
 					return entry.OwningPid, nil
 				}
 			}
@@ -189,7 +189,7 @@ loop:
 				localAddr := netip.AddrFrom16(entry.LocalAddr)
 				localPort := windows.Ntohs(uint16(entry.LocalPort))
 
-				if localAddr == from.Addr() && localPort == from.Port() {
+				if (localAddr == from.Addr() || localAddr.IsUnspecified()) && localPort == from.Port() {
 					return entry.OwningPid, nil
 				}
 			}
