@@ -23,7 +23,7 @@ Inbound is the component that listens on the local end. It works by opening a lo
 
 ### Outbound
 
-Outbound is the component that connects to the remote end. Depending on the configuration, it can be a specific network interface, a proxy server, or a [proxy group](#proxy-groups).
+Outbound is the component that connects to the remote end. Depending on the configuration, it can be a specific network interface, a proxy server, or a [proxy group](./outbound#proxy-groups).
 
 ## Rule-based Routing
 

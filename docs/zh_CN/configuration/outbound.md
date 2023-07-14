@@ -1,29 +1,29 @@
 ---
-sidebarTitle: Outbound
+sidebarTitle: Outbound 出站
 sidebarOrder: 4
 ---
 
-# Outbound
+# Outbound 出站
 
-There are several types of outbound targets in Clash. Each type has its own features and usage scenarios. In this page, we'll cover the common features of each type and how they should be used and configured.
+Clash 中有几种类型的出站. 每种类型都有自己的特点和使用场景. 在本页中, 我们将介绍每种类型的通用特点以及如何使用和配置它们.
 
 [[toc]]
 
-## Proxies
+## Proxies 代理节点
 
-Proxies are some outbound targets that you can configure. Like proxy servers, you define destinations for the packets here.
+Proxies 代理节点是您可以配置的一些出站目标. 就像代理服务器一样, 您在这里为数据包定义目的地.
 
 ### Shadowsocks
 
-Clash supports the following ciphers (encryption methods) for Shadowsocks:
+Clash 支持以下 Shadowsocks 的加密方法:
 
-| Family | Ciphers |
+| 系列 | 加密方法 |
 | ------ | ------- |
 | AEAD | aes-128-gcm, aes-192-gcm, aes-256-gcm, chacha20-ietf-poly1305, xchacha20-ietf-poly1305 |
-| Stream | aes-128-cfb, aes-192-cfb, aes-256-cfb, rc4-md5, chacha20-ietf, xchacha20 |
-| Block | aes-128-ctr, aes-192-ctr, aes-256-ctr |
+| 流式 | aes-128-cfb, aes-192-cfb, aes-256-cfb, rc4-md5, chacha20-ietf, xchacha20 |
+| 块式 | aes-128-ctr, aes-192-ctr, aes-256-ctr |
 
-In addition, Clash also supports popular Shadowsocks plugins `obfs` and `v2ray-plugin`.
+此外, Clash 还支持流行的 Shadowsocks 插件 `obfs` 和 `v2ray-plugin`.
 
 ::: code-group
 
@@ -65,7 +65,7 @@ In addition, Clash also supports popular Shadowsocks plugins `obfs` and `v2ray-p
   password: "password"
   plugin: v2ray-plugin
   plugin-opts:
-    mode: websocket # no QUIC now
+    mode: websocket # 暂不支持 QUIC
     # tls: true # wss
     # skip-cert-verify: true
     # host: bing.com
@@ -79,13 +79,15 @@ In addition, Clash also supports popular Shadowsocks plugins `obfs` and `v2ray-p
 
 ### ShadowsocksR
 
-Clash supports the infamous anti-censorship protocol ShadowsocksR as well. The supported ciphers:
+Clash 也支持声名狼藉的反审查协议 ShadowsocksR.
 
-| Family | Ciphers |
+支持以下 ShadowsocksR 的加密方法:
+
+| 系列 | 加密方法 |
 | ------ | ------- |
-| Stream | aes-128-cfb, aes-192-cfb, aes-256-cfb, rc4-md5, chacha20-ietf, xchacha20 |
+| 流式 | aes-128-cfb, aes-192-cfb, aes-256-cfb, rc4-md5, chacha20-ietf, xchacha20 |
 
-Supported obfuscation methods:
+支持的混淆方法:
 
 - plain
 - http_simple
@@ -94,7 +96,7 @@ Supported obfuscation methods:
 - tls1.2_ticket_auth
 - tls1.2_ticket_fastauth
 
-Supported protocols:
+支持的协议:
 
 - origin
 - auth_sha1_v4
@@ -121,7 +123,7 @@ Supported protocols:
 
 ### Vmess
 
-Clash supports the following ciphers (encryption methods) for Vmess:
+Clash 支持以下 Vmess 的加密方法:
 
 - auto
 - aes-128-gcm
@@ -143,7 +145,7 @@ Clash supports the following ciphers (encryption methods) for Vmess:
   # udp: true
   # tls: true
   # skip-cert-verify: true
-  # servername: example.com # priority over wss host
+  # servername: example.com # 优先于 wss 主机
   # network: ws
   # ws-opts:
   #   path: /path
@@ -214,9 +216,9 @@ Clash supports the following ciphers (encryption methods) for Vmess:
 
 :::
 
-### SOCKS5
+### Socks5
 
-In addition, Clash supports SOCKS5 outbound as well:
+此外, Clash 还支持 Socks5 代理.
 
 ```yaml
 - name: "socks"
@@ -234,7 +236,7 @@ In addition, Clash supports SOCKS5 outbound as well:
 
 ### HTTP
 
-Clash also supports HTTP outbound:
+Clash 也支持 HTTP 代理:
 
 ::: code-group
 
@@ -256,25 +258,20 @@ Clash also supports HTTP outbound:
   # routing-mark: 1234
   server: server
   port: 443
-  tls: true
-  # skip-cert-verify: true
-  # sni: custom.com
   # username: username
   # password: password
+  tls: true
+  skip-cert-verify: true
 ```
 
 :::
 
 ### Snell
 
-Being an alternative protocol for anti-censorship, Clash has integrated support for Snell as well.
-
-::: tip
-Clash does not support Snell v4. ([#2466](https://github.com/Dreamacro/clash/issues/2466))
-:::
+作为可选的反审查协议, Clash也集成了对Snell的支持.
 
 ```yaml
-# No UDP support yet
+# 暂不支持 UDP
 - name: "snell"
   type: snell
   # interface-name: eth0
@@ -290,7 +287,7 @@ Clash does not support Snell v4. ([#2466](https://github.com/Dreamacro/clash/iss
 
 ### Trojan
 
-Clash has built support for the popular protocol Trojan:
+Clash 内置了对流行协议 Trojan 的支持:
 
 ::: code-group
 
@@ -346,33 +343,33 @@ Clash has built support for the popular protocol Trojan:
 
 :::
 
-## Proxy Groups
+## Proxy Groups 策略组
 
-Proxy Groups are groups of proxies that you can use directly as a rule policy.
+Proxy Groups 策略组用于根据不同策略分发规则传递过来的请求, 其可以直接被规则引用, 也可以被其他策略组引用, 而最上级策略组被规则引用.
 
-### relay
+### relay 中继
 
-The request sent to this proxy group will be relayed through the specified proxy servers sequently. There's currently no UDP support on this. The specified proxy servers should not contain another relay.
+请求将依次通过指定的代理服务器进行中继, 目前不支持 UDP. 指定的代理服务器不应包含另一个 relay 中继.
 
-### url-test
+### url-test 延迟测试
 
-Clash benchmarks each proxy servers in the list, by sending HTTP HEAD requests to a specified URL through these servers periodically. It's possible to set a maximum tolerance value, benchmarking interval, and the target URL.
+Clash 会周期性地通过指定的 URL 向列表中的代理服务器发送 HTTP HEAD 请求来测试每个代理服务器的**延迟**. 可以设置最大容忍值、测试间隔和目标 URL.
 
-### fallback
+### fallback 可用性测试
 
-Clash periodically tests the availability of servers in the list with the same mechanism of `url-test`. The first available server will be used.
+Clash 会周期性地通过指定的 URL 向列表中的代理服务器发送 HTTP HEAD 请求来测试每个代理服务器的**可用性**. 第一个可用的服务器将被使用.
 
-### load-balance
+### load-balance 负载均衡
 
-The request to the same eTLD+1 will be dialed with the same proxy.
+相同 eTLD+1 的请求将使用同一个代理服务器.
 
-### select
+### select 手动选择
 
-The first server is by default used when Clash starts up. Users can choose the server to use with the RESTful API. In this mode, you can hardcode servers in the config or use [Proxy Providers](#proxy-providers).
+Clash 启动时默认使用策略组中的第一个代理服务器. 用户可以使用 RESTful API 选择要使用的代理服务器. 在此模式下, 您可以在配置中硬编码服务器或使用 [Proxy Providers 代理集](#proxy-providers-代理集) 动态添加服务器.
 
-Either way, sometimes you might as well just route packets with a direct connection. In this case, you can use the `DIRECT` outbound.
+无论哪种方式, 有时您也可以使用直接连接来路由数据包. 在这种情况下, 您可以使用 `DIRECT` 直连出站.
 
-To use a different network interface, you will need to use a Proxy Group that contains a `DIRECT` outbound with the `interface-name` option set.
+要使用不同的网络接口, 您需要使用包含 `DIRECT` 直连出站的策略组, 并设置 `interface-name` 选项.
 
 ```yaml
 - name: "My Wireguard Outbound"
@@ -381,14 +378,14 @@ To use a different network interface, you will need to use a Proxy Group that co
   proxies: [ 'DIRECT' ]
 ```
 
-## Proxy Providers
+## Proxy Providers 代理集
 
-Proxy Providers give users the power to load proxy server lists dynamically, instead of hardcoding them in the configuration file. There are currently two sources for a proxy provider to load server list from:
+代理集使用户可以动态加载代理服务器列表, 而不是在配置文件中硬编码. 目前有两种代理集可以加载服务器列表:
 
-- `http`: Clash loads the server list from a specified URL on startup. Clash periodically pulls the server list from remote if the `interval` option is set.
-- `file`: Clash loads the server list from a specified location on the filesystem on startup.
+- `http`: Clash 会在启动时从指定的 URL 加载服务器列表. 如果设置了 `interval` 选项, Clash 会定期从远程拉取服务器列表.
+- `file`: Clash 会在启动时从指定的文件位置加载服务器列表.
 
-Health check is available for both modes, and works exactly like `fallback` in Proxy Groups. The configuration format for the server list files is also exactly the same in the main configuration file:
+健康检查对两种模式都可用, 并且与策略组中的 `fallback` 完全相同. 服务器列表文件的配置格式在主配置文件中也完全相同:
 
 ::: code-group
 
@@ -399,7 +396,7 @@ proxy-providers:
     url: "url"
     interval: 3600
     path: ./provider1.yaml
-    # filter: 'a|b' # golang regex string
+    # filter: 'a|b' # golang regex 正则表达式
     health-check:
       enable: true
       interval: 600

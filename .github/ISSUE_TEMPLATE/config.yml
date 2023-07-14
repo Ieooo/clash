@@ -2,7 +2,7 @@ blank_issues_enabled: false
 
 contact_links:
   - name: （中文）阅读 Wiki
-    url: https://dreamacro.github.io/clash/
+    url: https://dreamacro.github.io/clash/zh_CN/
     about: 如果你是新手，或者想要了解 Clash 的更多信息，请阅读我们撰写的官方 Wiki
   - name: (English) Read our Wiki page
     url: https://dreamacro.github.io/clash/
