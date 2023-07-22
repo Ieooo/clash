@@ -107,7 +107,7 @@ type Config struct {
 
 type RawDNS struct {
 	Enable            bool              `yaml:"enable"`
-	IPv6              bool              `yaml:"ipv6"`
+	IPv6              *bool             `yaml:"ipv6"`
 	UseHosts          bool              `yaml:"use-hosts"`
 	NameServer        []string          `yaml:"nameserver"`
 	Fallback          []string          `yaml:"fallback"`
@@ -632,7 +632,7 @@ func parseDNS(rawCfg *RawConfig, hosts *trie.DomainTrie) (*DNS, error) {
 	dnsCfg := &DNS{
 		Enable:       cfg.Enable,
 		Listen:       cfg.Listen,
-		IPv6:         cfg.IPv6,
+		IPv6:         lo.FromPtrOr(cfg.IPv6, rawCfg.IPv6),
 		EnhancedMode: cfg.EnhancedMode,
 		FallbackFilter: FallbackFilter{
 			IPCIDR: []*net.IPNet{},
