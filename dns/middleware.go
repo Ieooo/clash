@@ -100,6 +100,9 @@ func withMapping(mapping *cache.LruCache) middleware {
 					continue
 				}
 
+				if ttl < 1 {
+					ttl = 1
+				}
 				mapping.SetWithExpire(ip.String(), host, time.Now().Add(time.Second*time.Duration(ttl)))
 			}
 
