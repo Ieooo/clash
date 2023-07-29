@@ -6,18 +6,19 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"strings"
 	"time"
 
 	"github.com/Dreamacro/clash/common/cache"
 	"github.com/Dreamacro/clash/common/picker"
-	"github.com/Dreamacro/clash/log"
 
 	D "github.com/miekg/dns"
 	"github.com/samber/lo"
 )
 
 func minimalTTL(records []D.RR) uint32 {
+	if len(records) == 0 {
+		return 0
+	}
 	return lo.MinBy(records, func(r1 D.RR, r2 D.RR) bool {
 		return r1.Header().Ttl < r2.Header().Ttl
 	}).Header().Ttl
@@ -34,26 +35,11 @@ func updateTTL(records []D.RR, ttl uint32) {
 }
 
 func putMsgToCache(c *cache.LruCache, key string, q D.Question, msg *D.Msg) {
-	// skip dns cache for acme challenge
-	if q.Qtype == D.TypeTXT && strings.HasPrefix(q.Name, "_acme-challenge.") {
-		log.Debugln("[DNS] dns cache ignored because of acme challenge for: %s", q.Name)
+	ttl := minimalTTL(msg.Answer)
+	if ttl == 0 {
 		return
 	}
-
-	var ttl uint32
-	switch {
-	case len(msg.Answer) != 0:
-		ttl = minimalTTL(msg.Answer)
-	case len(msg.Ns) != 0:
-		ttl = minimalTTL(msg.Ns)
-	case len(msg.Extra) != 0:
-		ttl = minimalTTL(msg.Extra)
-	default:
-		log.Debugln("[DNS] response msg empty: %#v", msg)
-		return
-	}
-
-	c.SetWithExpire(key, msg.Copy(), time.Now().Add(time.Second*time.Duration(ttl)))
+	c.SetWithExpire(key, msg.Copy(), time.Now().Add(time.Duration(ttl)*time.Second))
 }
 
 func setMsgTTL(msg *D.Msg, ttl uint32) {
