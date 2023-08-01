@@ -404,6 +404,7 @@ func match(metadata *C.Metadata) (C.Proxy, C.Rule, error) {
 			srcIP, ok := netip.AddrFromSlice(metadata.SrcIP)
 			srcPort, err := strconv.ParseUint(metadata.SrcPort, 10, 16)
 			if ok && err == nil && metadata.OriginDst.IsValid() {
+				srcIP = srcIP.Unmap()
 				path, err := P.FindProcessPath(metadata.NetWork.String(), netip.AddrPortFrom(srcIP, uint16(srcPort)), metadata.OriginDst)
 				if err != nil {
 					log.Debugln("[Process] find process %s: %v", metadata.String(), err)
