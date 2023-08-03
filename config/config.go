@@ -28,25 +28,14 @@ import (
 
 // General config
 type General struct {
-	Inbound
+	LagecyInbound
 	Controller
-	Mode        T.TunnelMode `json:"mode"`
-	LogLevel    log.LogLevel `json:"log-level"`
-	IPv6        bool         `json:"ipv6"`
-	Interface   string       `json:"-"`
-	RoutingMark int          `json:"-"`
-}
-
-// Inbound
-type Inbound struct {
-	Port           int      `json:"port"`
-	SocksPort      int      `json:"socks-port"`
-	RedirPort      int      `json:"redir-port"`
-	TProxyPort     int      `json:"tproxy-port"`
-	MixedPort      int      `json:"mixed-port"`
-	Authentication []string `json:"authentication"`
-	AllowLan       bool     `json:"allow-lan"`
-	BindAddress    string   `json:"bind-address"`
+	Authentication []string     `json:"authentication"`
+	Mode           T.TunnelMode `json:"mode"`
+	LogLevel       log.LogLevel `json:"log-level"`
+	IPv6           bool         `json:"ipv6"`
+	Interface      string       `json:"-"`
+	RoutingMark    int          `json:"-"`
 }
 
 // Controller
@@ -54,6 +43,16 @@ type Controller struct {
 	ExternalController string `json:"-"`
 	ExternalUI         string `json:"-"`
 	Secret             string `json:"-"`
+}
+
+type LagecyInbound struct {
+	Port        int    `json:"port"`
+	SocksPort   int    `json:"socks-port"`
+	RedirPort   int    `json:"redir-port"`
+	TProxyPort  int    `json:"tproxy-port"`
+	MixedPort   int    `json:"mixed-port"`
+	AllowLan    bool   `json:"allow-lan"`
+	BindAddress string `json:"bind-address"`
 }
 
 // DNS config
@@ -98,6 +97,7 @@ type Config struct {
 	Experimental *Experimental
 	Hosts        *trie.DomainTrie
 	Profile      *Profile
+	Inbounds     []C.Inbound
 	Rules        []C.Rule
 	Users        []auth.AuthUser
 	Proxies      map[string]C.Proxy
@@ -207,6 +207,7 @@ type RawConfig struct {
 
 	ProxyProvider map[string]map[string]any `yaml:"proxy-providers"`
 	Hosts         map[string]string         `yaml:"hosts"`
+	Inbounds      []C.Inbound               `yaml:"inbounds"`
 	DNS           RawDNS                    `yaml:"dns"`
 	Experimental  Experimental              `yaml:"experimental"`
 	Profile       Profile                   `yaml:"profile"`
@@ -275,6 +276,8 @@ func ParseRawConfig(rawCfg *RawConfig) (*Config, error) {
 	}
 	config.General = general
 
+	config.Inbounds = rawCfg.Inbounds
+
 	proxies, providers, err := parseProxies(rawCfg)
 	if err != nil {
 		return nil, err
@@ -326,7 +329,7 @@ func parseGeneral(cfg *RawConfig) (*General, error) {
 	}
 
 	return &General{
-		Inbound: Inbound{
+		LagecyInbound: LagecyInbound{
 			Port:        cfg.Port,
 			SocksPort:   cfg.SocksPort,
 			RedirPort:   cfg.RedirPort,

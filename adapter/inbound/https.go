@@ -4,6 +4,7 @@ import (
 	"net"
 	"net/http"
 	"net/netip"
+	"strconv"
 
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/context"
@@ -19,6 +20,7 @@ func NewHTTPS(request *http.Request, conn net.Conn) *context.ConnContext {
 	}
 	if addrPort, err := netip.ParseAddrPort(conn.LocalAddr().String()); err == nil {
 		metadata.OriginDst = addrPort
+		metadata.InboundPort = strconv.Itoa(int(addrPort.Port()))
 	}
 	return context.NewConnContext(conn, metadata)
 }

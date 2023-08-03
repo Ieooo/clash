@@ -3,6 +3,7 @@ package inbound
 import (
 	"net"
 	"net/netip"
+	"strconv"
 
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/context"
@@ -20,6 +21,7 @@ func NewSocket(target socks5.Addr, conn net.Conn, source C.Type) *context.ConnCo
 	}
 	if addrPort, err := netip.ParseAddrPort(conn.LocalAddr().String()); err == nil {
 		metadata.OriginDst = addrPort
+		metadata.InboundPort = strconv.Itoa(int(addrPort.Port()))
 	}
 	return context.NewConnContext(conn, metadata)
 }

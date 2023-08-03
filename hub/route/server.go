@@ -69,6 +69,7 @@ func Start(addr string, secret string) {
 		r.Get("/traffic", traffic)
 		r.Get("/version", version)
 		r.Mount("/configs", configRouter())
+		r.Mount("/inbounds", inboundRouter())
 		r.Mount("/proxies", proxyRouter())
 		r.Mount("/rules", ruleRouter())
 		r.Mount("/connections", connectionRouter())

@@ -6,9 +6,9 @@ import (
 	"net/netip"
 	"unsafe"
 
-	"golang.org/x/sys/windows"
-
 	"github.com/Dreamacro/clash/common/pool"
+
+	"golang.org/x/sys/windows"
 )
 
 var (

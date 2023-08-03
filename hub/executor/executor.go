@@ -73,6 +73,7 @@ func ApplyConfig(cfg *config.Config, force bool) {
 	updateHosts(cfg.Hosts)
 	updateProfile(cfg)
 	updateGeneral(cfg.General, force)
+	updateInbounds(cfg.Inbounds, force)
 	updateDNS(cfg.DNS)
 	updateExperimental(cfg)
 	updateTunnels(cfg.Tunnels)
@@ -86,19 +87,19 @@ func GetGeneral() *config.General {
 	}
 
 	general := &config.General{
-		Inbound: config.Inbound{
-			Port:           ports.Port,
-			SocksPort:      ports.SocksPort,
-			RedirPort:      ports.RedirPort,
-			TProxyPort:     ports.TProxyPort,
-			MixedPort:      ports.MixedPort,
-			Authentication: authenticator,
-			AllowLan:       listener.AllowLan(),
-			BindAddress:    listener.BindAddress(),
+		LagecyInbound: config.LagecyInbound{
+			Port:        ports.Port,
+			SocksPort:   ports.SocksPort,
+			RedirPort:   ports.RedirPort,
+			TProxyPort:  ports.TProxyPort,
+			MixedPort:   ports.MixedPort,
+			AllowLan:    listener.AllowLan(),
+			BindAddress: listener.BindAddress(),
 		},
-		Mode:     tunnel.Mode(),
-		LogLevel: log.Level(),
-		IPv6:     !resolver.DisableIPv6,
+		Authentication: authenticator,
+		Mode:           tunnel.Mode(),
+		LogLevel:       log.Level(),
+		IPv6:           !resolver.DisableIPv6,
 	}
 
 	return general
@@ -164,6 +165,16 @@ func updateTunnels(tunnels []config.Tunnel) {
 	listener.PatchTunnel(tunnels, tunnel.TCPIn(), tunnel.UDPIn())
 }
 
+func updateInbounds(inbounds []C.Inbound, force bool) {
+	if !force {
+		return
+	}
+	tcpIn := tunnel.TCPIn()
+	udpIn := tunnel.UDPIn()
+
+	listener.ReCreateListeners(inbounds, tcpIn, udpIn)
+}
+
 func updateGeneral(general *config.General, force bool) {
 	log.SetLevel(general.LogLevel)
 	tunnel.SetMode(general.Mode)
@@ -184,14 +195,14 @@ func updateGeneral(general *config.General, force bool) {
 	bindAddress := general.BindAddress
 	listener.SetBindAddress(bindAddress)
 
-	tcpIn := tunnel.TCPIn()
-	udpIn := tunnel.UDPIn()
-
-	listener.ReCreateHTTP(general.Port, tcpIn)
-	listener.ReCreateSocks(general.SocksPort, tcpIn, udpIn)
-	listener.ReCreateRedir(general.RedirPort, tcpIn, udpIn)
-	listener.ReCreateTProxy(general.TProxyPort, tcpIn, udpIn)
-	listener.ReCreateMixed(general.MixedPort, tcpIn, udpIn)
+	ports := listener.Ports{
+		Port:       general.Port,
+		SocksPort:  general.SocksPort,
+		RedirPort:  general.RedirPort,
+		TProxyPort: general.TProxyPort,
+		MixedPort:  general.MixedPort,
+	}
+	listener.ReCreatePortsListeners(ports, tunnel.TCPIn(), tunnel.UDPIn())
 }
 
 func updateUsers(users []auth.AuthUser) {

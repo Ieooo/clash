@@ -6,14 +6,15 @@ import (
 
 	"github.com/Dreamacro/clash/component/resolver"
 	"github.com/Dreamacro/clash/config"
-	"github.com/Dreamacro/clash/constant"
+	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/hub/executor"
-	P "github.com/Dreamacro/clash/listener"
+	"github.com/Dreamacro/clash/listener"
 	"github.com/Dreamacro/clash/log"
 	"github.com/Dreamacro/clash/tunnel"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/samber/lo"
 )
 
 func configRouter() http.Handler {
@@ -27,14 +28,6 @@ func configRouter() http.Handler {
 func getConfigs(w http.ResponseWriter, r *http.Request) {
 	general := executor.GetGeneral()
 	render.JSON(w, r, general)
-}
-
-func pointerOrDefault(p *int, def int) int {
-	if p != nil {
-		return *p
-	}
-
-	return def
 }
 
 func patchConfigs(w http.ResponseWriter, r *http.Request) {
@@ -56,25 +49,6 @@ func patchConfigs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if general.AllowLan != nil {
-		P.SetAllowLan(*general.AllowLan)
-	}
-
-	if general.BindAddress != nil {
-		P.SetBindAddress(*general.BindAddress)
-	}
-
-	ports := P.GetPorts()
-
-	tcpIn := tunnel.TCPIn()
-	udpIn := tunnel.UDPIn()
-
-	P.ReCreateHTTP(pointerOrDefault(general.Port, ports.Port), tcpIn)
-	P.ReCreateSocks(pointerOrDefault(general.SocksPort, ports.SocksPort), tcpIn, udpIn)
-	P.ReCreateRedir(pointerOrDefault(general.RedirPort, ports.RedirPort), tcpIn, udpIn)
-	P.ReCreateTProxy(pointerOrDefault(general.TProxyPort, ports.TProxyPort), tcpIn, udpIn)
-	P.ReCreateMixed(pointerOrDefault(general.MixedPort, ports.MixedPort), tcpIn, udpIn)
-
 	if general.Mode != nil {
 		tunnel.SetMode(*general.Mode)
 	}
@@ -86,6 +60,23 @@ func patchConfigs(w http.ResponseWriter, r *http.Request) {
 	if general.IPv6 != nil {
 		resolver.DisableIPv6 = !*general.IPv6
 	}
+
+	if general.AllowLan != nil {
+		listener.SetAllowLan(*general.AllowLan)
+	}
+
+	if general.BindAddress != nil {
+		listener.SetBindAddress(*general.BindAddress)
+	}
+
+	ports := listener.GetPorts()
+	ports.Port = lo.FromPtrOr(general.Port, ports.Port)
+	ports.SocksPort = lo.FromPtrOr(general.SocksPort, ports.SocksPort)
+	ports.RedirPort = lo.FromPtrOr(general.RedirPort, ports.RedirPort)
+	ports.TProxyPort = lo.FromPtrOr(general.TProxyPort, ports.TProxyPort)
+	ports.MixedPort = lo.FromPtrOr(general.MixedPort, ports.MixedPort)
+
+	listener.ReCreatePortsListeners(*ports, tunnel.TCPIn(), tunnel.UDPIn())
 
 	render.NoContent(w, r)
 }
@@ -114,7 +105,7 @@ func updateConfigs(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		if req.Path == "" {
-			req.Path = constant.Path.Config()
+			req.Path = C.Path.Config()
 		}
 		if !filepath.IsAbs(req.Path) {
 			render.Status(r, http.StatusBadRequest)

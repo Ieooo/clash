@@ -10,6 +10,7 @@ const (
 	SrcIPCIDR
 	SrcPort
 	DstPort
+	InboundPort
 	Process
 	ProcessPath
 	IPSet
@@ -36,6 +37,8 @@ func (rt RuleType) String() string {
 		return "SrcPort"
 	case DstPort:
 		return "DstPort"
+	case InboundPort:
+		return "InboundPort"
 	case Process:
 		return "Process"
 	case ProcessPath:
