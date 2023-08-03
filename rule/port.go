@@ -17,7 +17,7 @@ const (
 
 type Port struct {
 	adapter  string
-	port     string
+	port     C.Port
 	portType PortType
 }
 
@@ -41,7 +41,7 @@ func (p *Port) Match(metadata *C.Metadata) bool {
 	case PortTypeDest:
 		return metadata.DstPort == p.port
 	case PortTypeInbound:
-		return metadata.InboundPort == p.port
+		return metadata.InboundPort == uint16(p.port)
 	default:
 		panic(fmt.Errorf("unknown port type: %v", p.portType))
 	}
@@ -52,7 +52,7 @@ func (p *Port) Adapter() string {
 }
 
 func (p *Port) Payload() string {
-	return p.port
+	return p.port.String()
 }
 
 func (p *Port) ShouldResolveIP() bool {
@@ -64,13 +64,13 @@ func (p *Port) ShouldFindProcess() bool {
 }
 
 func NewPort(port string, adapter string, portType PortType) (*Port, error) {
-	_, err := strconv.ParseUint(port, 10, 16)
+	p, err := strconv.ParseUint(port, 10, 16)
 	if err != nil {
 		return nil, errPayload
 	}
 	return &Port{
 		adapter:  adapter,
-		port:     port,
+		port:     C.Port(p),
 		portType: portType,
 	}, nil
 }

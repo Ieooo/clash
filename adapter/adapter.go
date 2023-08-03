@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/Dreamacro/clash/common/queue"
@@ -194,10 +195,12 @@ func urlToMetadata(rawURL string) (addr C.Metadata, err error) {
 		}
 	}
 
+	p, _ := strconv.ParseUint(port, 10, 16)
+
 	addr = C.Metadata{
 		Host:    u.Hostname(),
 		DstIP:   nil,
-		DstPort: port,
+		DstPort: C.Port(p),
 	}
 	return
 }

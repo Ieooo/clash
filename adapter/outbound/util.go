@@ -2,7 +2,6 @@ package outbound
 
 import (
 	"net"
-	"strconv"
 	"time"
 
 	"github.com/Dreamacro/clash/component/resolver"
@@ -25,7 +24,6 @@ func serializesSocksAddr(metadata *C.Metadata) []byte {
 	addrType := metadata.AddrType()
 	buf.PutUint8(uint8(addrType))
 
-	p, _ := strconv.ParseUint(metadata.DstPort, 10, 16)
 	switch addrType {
 	case socks5.AtypDomainName:
 		buf.PutUint8(uint8(len(metadata.Host)))
@@ -36,7 +34,7 @@ func serializesSocksAddr(metadata *C.Metadata) []byte {
 		buf.PutSlice(metadata.DstIP.To16())
 	}
 
-	buf.PutUint16be(uint16(p))
+	buf.PutUint16be(uint16(metadata.DstPort))
 	return buf.Bytes()
 }
 
