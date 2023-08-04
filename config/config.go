@@ -28,7 +28,7 @@ import (
 
 // General config
 type General struct {
-	LagecyInbound
+	LegacyInbound
 	Controller
 	Authentication []string     `json:"authentication"`
 	Mode           T.TunnelMode `json:"mode"`
@@ -45,7 +45,7 @@ type Controller struct {
 	Secret             string `json:"-"`
 }
 
-type LagecyInbound struct {
+type LegacyInbound struct {
 	Port        int    `json:"port"`
 	SocksPort   int    `json:"socks-port"`
 	RedirPort   int    `json:"redir-port"`
@@ -329,7 +329,7 @@ func parseGeneral(cfg *RawConfig) (*General, error) {
 	}
 
 	return &General{
-		LagecyInbound: LagecyInbound{
+		LegacyInbound: LegacyInbound{
 			Port:        cfg.Port,
 			SocksPort:   cfg.SocksPort,
 			RedirPort:   cfg.RedirPort,

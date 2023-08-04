@@ -87,7 +87,7 @@ func GetGeneral() *config.General {
 	}
 
 	general := &config.General{
-		LagecyInbound: config.LagecyInbound{
+		LegacyInbound: config.LegacyInbound{
 			Port:        ports.Port,
 			SocksPort:   ports.SocksPort,
 			RedirPort:   ports.RedirPort,
