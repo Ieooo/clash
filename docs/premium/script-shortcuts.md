@@ -39,6 +39,7 @@ rules:
 - dst_ip: string
 - src_port: uint16
 - dst_port: uint16
+- inbound_port: uint16
 - host: string
 - process_path: string
 

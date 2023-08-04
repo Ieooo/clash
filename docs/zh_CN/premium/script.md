@@ -56,6 +56,7 @@ interface Metadata {
   src_port: string
   dst_ip: string
   dst_port: string
+  inbound_port: number
 }
 
 interface Context {
