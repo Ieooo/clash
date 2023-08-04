@@ -19,7 +19,6 @@ func NewHTTPS(request *http.Request, conn net.Conn) *context.ConnContext {
 	}
 	if addrPort, err := netip.ParseAddrPort(conn.LocalAddr().String()); err == nil {
 		metadata.OriginDst = addrPort
-		metadata.InboundPort = addrPort.Port()
 	}
 	return context.NewConnContext(conn, metadata)
 }

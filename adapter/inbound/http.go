@@ -21,7 +21,6 @@ func NewHTTP(target socks5.Addr, source net.Addr, originTarget net.Addr, conn ne
 	if originTarget != nil {
 		if addrPort, err := netip.ParseAddrPort(originTarget.String()); err == nil {
 			metadata.OriginDst = addrPort
-			metadata.InboundPort = addrPort.Port()
 		}
 	}
 	return context.NewConnContext(conn, metadata)

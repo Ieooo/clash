@@ -41,7 +41,7 @@ func (p *Port) Match(metadata *C.Metadata) bool {
 	case PortTypeDest:
 		return metadata.DstPort == p.port
 	case PortTypeInbound:
-		return metadata.InboundPort == uint16(p.port)
+		return metadata.OriginDst.Port() == uint16(p.port)
 	default:
 		panic(fmt.Errorf("unknown port type: %v", p.portType))
 	}
