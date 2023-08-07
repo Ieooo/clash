@@ -50,27 +50,25 @@ func (i *Inbound) UnmarshalYAML(unmarshal func(any) error) error {
 		}
 
 		*i = Inbound(inner)
-		return nil
+	} else {
+		inner, err := parseInbound(tp)
+		if err != nil {
+			return err
+		}
+
+		*i = Inbound(*inner)
 	}
 
-	inner, err := parseInbound(tp)
-	if err != nil {
-		return err
-	}
-	*i = Inbound(*inner)
 	if !supportInboundTypes[i.Type] {
 		return fmt.Errorf("not support inbound type: %s", i.Type)
 	}
 	_, portStr, err := net.SplitHostPort(i.BindAddress)
 	if err != nil {
-		return fmt.Errorf("bind address parse error. addr:%s, err:%v", i.BindAddress, err)
+		return fmt.Errorf("bind address parse error. addr: %s, err: %w", i.BindAddress, err)
 	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		return fmt.Errorf("port not a number. addr:%s", i.BindAddress)
-	}
-	if port == 0 {
-		return fmt.Errorf("invalid bind port. addr:%s", i.BindAddress)
+	port, err := strconv.ParseUint(portStr, 10, 16)
+	if err != nil || port == 0 {
+		return fmt.Errorf("invalid bind port. addr: %s", i.BindAddress)
 	}
 	return nil
 }
