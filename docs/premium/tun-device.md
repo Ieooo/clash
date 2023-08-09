@@ -10,7 +10,7 @@ The Premium core has out-of-the-box support of TUN device. Being a Network layer
 One of the biggest advantage of using Clash TUN is the built-in support of the *automagic* management of the route table, routing rules and nftable. You can enable it with the options `tun.auto-route` and `tun.auto-redir`. It's a drop-in replacement of the ancient configuration option `redir-port` (TCP) for the sake of easier configuration and better stability.
 
 ::: tip
-`tun.auto-route` and `tun.auto-redir` are only available on macOS, Windows, Linux and Android, and only receives IPv4 traffic.
+`tun.auto-route` is only available on macOS, Windows, Linux and Android, and only receives IPv4 traffic. `tun.auto-redir` is only available on Linux(needs netlink support in the kernel).
 :::
 
 There are two options of TCP/IP stack available: `system` or `gvisor`. In order to get the best performance available, we recommend that you always use `system` stack unless you have a specific reason or compatibility issue to use `gvisor`. If that's the case, do not hesitate to [submit an issue](https://github.com/Dreamacro/clash/issues/new/choose).
