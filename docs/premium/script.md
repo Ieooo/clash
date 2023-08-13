@@ -18,9 +18,10 @@ mode: Script
 script:
   code: |
     def main(ctx, metadata):
-      ip = metadata["dst_ip"] = ctx.resolve_ip(metadata["host"])
+      ip = ctx.resolve_ip(metadata["host"])
       if ip == "":
         return "DIRECT"
+      metadata["dst_ip"] = ip
 
       code = ctx.geoip(ip)
       if code == "LAN" or code == "CN":
