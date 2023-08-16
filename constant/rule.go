@@ -1,5 +1,27 @@
 package constant
 
+const (
+	RuleConfigDomain        RuleConfig = "DOMAIN"
+	RuleConfigDomainSuffix  RuleConfig = "DOMAIN-SUFFIX"
+	RuleConfigDomainKeyword RuleConfig = "DOMAIN-KEYWORD"
+	RuleConfigGeoIP         RuleConfig = "GEOIP"
+	RuleConfigIPCIDR        RuleConfig = "IP-CIDR"
+	RuleConfigIPCIDR6       RuleConfig = "IP-CIDR6"
+	RuleConfigSrcIPCIDR     RuleConfig = "SRC-IP-CIDR"
+	RuleConfigSrcPort       RuleConfig = "SRC-PORT"
+	RuleConfigDstPort       RuleConfig = "DST-PORT"
+	RuleConfigInboundPort   RuleConfig = "INBOUND-PORT"
+	RuleConfigProcessName   RuleConfig = "PROCESS-NAME"
+	RuleConfigProcessPath   RuleConfig = "PROCESS-PATH"
+	RuleConfigIPSet         RuleConfig = "IPSET"
+	RuleConfigRuleSet       RuleConfig = "RULE-SET"
+	RuleConfigScript        RuleConfig = "SCRIPT"
+	RuleConfigMatch         RuleConfig = "MATCH"
+)
+
+// Rule Config Type String represents a rule type in configuration files.
+type RuleConfig string
+
 // Rule Type
 const (
 	Domain RuleType = iota

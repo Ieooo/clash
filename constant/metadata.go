@@ -52,6 +52,8 @@ func (t Type) String() string {
 		return "Redir"
 	case TPROXY:
 		return "TProxy"
+	case TUNNEL:
+		return "Tunnel"
 	default:
 		return "Unknown"
 	}

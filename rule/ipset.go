@@ -6,6 +6,9 @@ import (
 	"github.com/Dreamacro/clash/log"
 )
 
+// Implements C.Rule
+var _ C.Rule = (*IPSet)(nil)
+
 type IPSet struct {
 	name        string
 	adapter     string

@@ -6,6 +6,9 @@ import (
 	C "github.com/Dreamacro/clash/constant"
 )
 
+// Implements C.Rule
+var _ C.Rule = (*DomainSuffix)(nil)
+
 type DomainSuffix struct {
 	suffix  string
 	adapter string

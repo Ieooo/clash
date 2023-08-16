@@ -165,10 +165,12 @@ func resolveMetadata(ctx C.PlainContext, metadata *C.Metadata) (proxy C.Proxy, r
 		proxy = proxies["DIRECT"]
 	case Global:
 		proxy = proxies["GLOBAL"]
-	// Rule
-	default:
+	case Rule:
 		proxy, rule, err = match(metadata)
+	default:
+		panic(fmt.Sprintf("unknown mode: %s", mode))
 	}
+
 	return
 }
 

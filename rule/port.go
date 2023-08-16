@@ -15,6 +15,9 @@ const (
 	PortTypeInbound
 )
 
+// Implements C.Rule
+var _ C.Rule = (*Port)(nil)
+
 type Port struct {
 	adapter  string
 	port     C.Port

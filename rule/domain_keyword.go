@@ -6,6 +6,9 @@ import (
 	C "github.com/Dreamacro/clash/constant"
 )
 
+// Implements C.Rule
+var _ C.Rule = (*DomainKeyword)(nil)
+
 type DomainKeyword struct {
 	keyword string
 	adapter string
