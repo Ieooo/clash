@@ -116,16 +116,18 @@ func TestParseRule(t *testing.T) {
 			expectedRule: lo.Must(NewProcess("/opt/example/example", policy, false)),
 		},
 		{
-			tp:           C.RuleConfigIPSet,
-			payload:      "example",
-			target:       policy,
-			expectedRule: lo.Must(NewIPSet("example", policy, true)),
+			tp:      C.RuleConfigIPSet,
+			payload: "example",
+			target:  policy,
+			// unit test runs on Linux machine and NewIPSet(...) won't be available
+			expectedError: errors.New("operation not permitted"),
 		},
 		{
 			tp:      C.RuleConfigIPSet,
 			payload: "example",
 			target:  policy, params: []string{noResolve},
-			expectedRule: lo.Must(NewIPSet("example", policy, false)),
+			// unit test runs on Linux machine and NewIPSet(...) won't be available
+			expectedError: errors.New("operation not permitted"),
 		},
 		{
 			tp:           C.RuleConfigMatch,
