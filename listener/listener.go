@@ -88,13 +88,13 @@ func createListener(inbound C.Inbound, tcpIn chan<- C.ConnContext, udpIn chan<- 
 	tcpCreator := tcpListenerCreators[inbound.Type]
 	udpCreator := udpListenerCreators[inbound.Type]
 	if tcpCreator == nil && udpCreator == nil {
-		log.Errorln("inbound type %s not support.", inbound.Type)
+		log.Errorln("inbound type %s is not supported", inbound.Type)
 		return
 	}
 	if tcpCreator != nil {
 		tcpListener, err := tcpCreator(addr, tcpIn)
 		if err != nil {
-			log.Errorln("create addr %s tcp listener error. err:%v", addr, err)
+			log.Errorln("create addr %s tcp listener error: %v", addr, err)
 			return
 		}
 		tcpListeners[inbound] = tcpListener
@@ -102,26 +102,26 @@ func createListener(inbound C.Inbound, tcpIn chan<- C.ConnContext, udpIn chan<- 
 	if udpCreator != nil {
 		udpListener, err := udpCreator(addr, udpIn)
 		if err != nil {
-			log.Errorln("create addr %s udp listener error. err:%v", addr, err)
+			log.Errorln("create addr %s udp listener error: %v", addr, err)
 			return
 		}
 		udpListeners[inbound] = udpListener
 	}
-	log.Infoln("inbound %s create success.", inbound.ToAlias())
+	log.Infoln("inbound %s created successfully", inbound.ToAlias())
 }
 
 func closeListener(inbound C.Inbound) {
 	listener := tcpListeners[inbound]
 	if listener != nil {
 		if err := listener.Close(); err != nil {
-			log.Errorln("close tcp address `%s` error. err:%s", inbound.ToAlias(), err.Error())
+			log.Errorln("close tcp address `%s` error: %s", inbound.ToAlias(), err.Error())
 		}
 		delete(tcpListeners, inbound)
 	}
 	listener = udpListeners[inbound]
 	if listener != nil {
 		if err := listener.Close(); err != nil {
-			log.Errorln("close udp address `%s` error. err:%s", inbound.ToAlias(), err.Error())
+			log.Errorln("close udp address `%s` error: %s", inbound.ToAlias(), err.Error())
 		}
 		delete(udpListeners, inbound)
 	}
