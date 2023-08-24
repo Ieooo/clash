@@ -16,6 +16,7 @@ import (
 	C "github.com/Dreamacro/clash/constant"
 
 	D "github.com/miekg/dns"
+	"github.com/samber/lo"
 	"golang.org/x/sync/singleflight"
 )
 
@@ -166,7 +167,10 @@ func (r *Resolver) exchangeWithoutCache(ctx context.Context, m *D.Msg) (msg *D.M
 			}
 
 			msg := result.(*D.Msg)
-
+			// OPT RRs MUST NOT be cached, forwarded, or stored in or loaded from master files.
+			msg.Extra = lo.Filter(msg.Extra, func(rr D.RR, index int) bool {
+				return rr.Header().Rrtype != D.TypeOPT
+			})
 			putMsgToCache(r.lruCache, q.String(), q, msg)
 		}()
 
