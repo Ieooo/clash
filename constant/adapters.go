@@ -19,6 +19,7 @@ const (
 	Snell
 	Socks5
 	Http
+	Vless
 	Vmess
 	Trojan
 
@@ -140,6 +141,8 @@ func (at AdapterType) String() string {
 		return "Socks5"
 	case Http:
 		return "Http"
+	case Vless:
+		return "Vless"
 	case Vmess:
 		return "Vmess"
 	case Trojan:

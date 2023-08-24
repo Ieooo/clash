@@ -34,6 +34,7 @@ type Conn struct {
 	security    byte
 	option      byte
 	isAead      bool
+	isVless     bool
 
 	received bool
 }
@@ -55,6 +56,29 @@ func (vc *Conn) Read(b []byte) (int, error) {
 }
 
 func (vc *Conn) sendRequest() error {
+	if vc.isVless {
+		buf := protobytes.BytesWriter{}
+		buf.PutUint8(0)                  // Protocol Version
+		buf.PutSlice(vc.id.UUID.Bytes()) // UUID
+		buf.PutUint8(0)                  // Addons Length
+		// buf.PutString("")             // Addons Data
+
+		// Command
+		if vc.dst.UDP {
+			buf.PutUint8(CommandUDP)
+		} else {
+			buf.PutUint8(CommandTCP)
+		}
+
+		// Port AddrType Addr
+		buf.PutUint16be(uint16(vc.dst.Port))
+		buf.PutUint8(vc.dst.AddrType)
+		buf.PutSlice(vc.dst.Addr)
+
+		_, err := vc.Conn.Write(buf.Bytes())
+		return err
+	}
+
 	timestamp := time.Now()
 
 	mbuf := protobytes.BytesWriter{}
@@ -119,6 +143,24 @@ func (vc *Conn) sendRequest() error {
 }
 
 func (vc *Conn) recvResponse() error {
+	if vc.isVless {
+		var buffer [2]byte
+		if _, err := io.ReadFull(vc.Conn, buffer[:]); err != nil {
+			return err
+		}
+
+		if buffer[0] != 0 {
+			return errors.New("unexpected response version")
+		}
+
+		length := int64(buffer[1])
+		if length != 0 { // addon data length > 0
+			io.CopyN(io.Discard, vc.Conn, length) // just discard
+		}
+
+		return nil
+	}
+
 	var buf []byte
 	if !vc.isAead {
 		block, err := aes.NewCipher(vc.respBodyKey[:])
@@ -194,31 +236,37 @@ func hashTimestamp(t time.Time) []byte {
 }
 
 // newConn return a Conn instance
-func newConn(conn net.Conn, id *ID, dst *DstAddr, security Security, isAead bool) (*Conn, error) {
-	randBytes := make([]byte, 33)
-	rand.Read(randBytes)
-	reqBodyIV := make([]byte, 16)
-	reqBodyKey := make([]byte, 16)
-	copy(reqBodyIV[:], randBytes[:16])
-	copy(reqBodyKey[:], randBytes[16:32])
-	respV := randBytes[32]
-	option := OptionChunkStream
-
+func newConn(conn net.Conn, id *ID, dst *DstAddr, security Security, isAead bool, isVless bool) (*Conn, error) {
 	var (
+		reqBodyKey  []byte
+		reqBodyIV   []byte
 		respBodyKey []byte
 		respBodyIV  []byte
+		respV       byte
+		option      byte
 	)
 
-	if isAead {
-		bodyKey := sha256.Sum256(reqBodyKey)
-		bodyIV := sha256.Sum256(reqBodyIV)
-		respBodyKey = bodyKey[:16]
-		respBodyIV = bodyIV[:16]
-	} else {
-		bodyKey := md5.Sum(reqBodyKey)
-		bodyIV := md5.Sum(reqBodyIV)
-		respBodyKey = bodyKey[:]
-		respBodyIV = bodyIV[:]
+	if !isVless {
+		randBytes := make([]byte, 33)
+		rand.Read(randBytes)
+		reqBodyIV = make([]byte, 16)
+		reqBodyKey = make([]byte, 16)
+		copy(reqBodyIV[:], randBytes[:16])
+		copy(reqBodyKey[:], randBytes[16:32])
+		respV = randBytes[32]
+		option = OptionChunkStream
+
+		if isAead {
+			bodyKey := sha256.Sum256(reqBodyKey)
+			bodyIV := sha256.Sum256(reqBodyIV)
+			respBodyKey = bodyKey[:16]
+			respBodyIV = bodyIV[:16]
+		} else {
+			bodyKey := md5.Sum(reqBodyKey)
+			bodyIV := md5.Sum(reqBodyIV)
+			respBodyKey = bodyKey[:]
+			respBodyIV = bodyIV[:]
+		}
 	}
 
 	var writer io.Writer
@@ -276,6 +324,7 @@ func newConn(conn net.Conn, id *ID, dst *DstAddr, security Security, isAead bool
 		security:    security,
 		option:      option,
 		isAead:      isAead,
+		isVless:     isVless,
 	}
 	if err := c.sendRequest(); err != nil {
 		return nil, err

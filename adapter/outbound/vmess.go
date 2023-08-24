@@ -39,8 +39,8 @@ type VmessOption struct {
 	Server         string       `proxy:"server"`
 	Port           int          `proxy:"port"`
 	UUID           string       `proxy:"uuid"`
-	AlterID        int          `proxy:"alterId"`
-	Cipher         string       `proxy:"cipher"`
+	AlterID        int          `proxy:"alterId,omitempty"`
+	Cipher         string       `proxy:"cipher,omitempty"`
 	UDP            bool         `proxy:"udp,omitempty"`
 	Network        string       `proxy:"network,omitempty"`
 	TLS            bool         `proxy:"tls,omitempty"`
@@ -264,7 +264,14 @@ func (v *Vmess) ListenPacketContext(ctx context.Context, metadata *C.Metadata, o
 }
 
 func NewVmess(option VmessOption) (*Vmess, error) {
+	return newVmess(option, false)
+}
+
+func newVmess(option VmessOption, isVless bool) (*Vmess, error) {
 	security := strings.ToLower(option.Cipher)
+	if security == "" {
+		security = "auto"
+	}
 	client, err := vmess.NewClient(vmess.Config{
 		UUID:     option.UUID,
 		AlterID:  uint16(option.AlterID),
@@ -272,6 +279,7 @@ func NewVmess(option VmessOption) (*Vmess, error) {
 		HostName: option.Server,
 		Port:     strconv.Itoa(option.Port),
 		IsAead:   option.AlterID == 0,
+		IsVless:  isVless,
 	})
 	if err != nil {
 		return nil, err
@@ -284,11 +292,16 @@ func NewVmess(option VmessOption) (*Vmess, error) {
 		}
 	}
 
+	tp := C.Vmess
+	if isVless {
+		tp = C.Vless
+	}
+
 	v := &Vmess{
 		Base: &Base{
 			name:  option.Name,
 			addr:  net.JoinHostPort(option.Server, strconv.Itoa(option.Port)),
-			tp:    C.Vmess,
+			tp:    tp,
 			udp:   option.UDP,
 			iface: option.Interface,
 			rmark: option.RoutingMark,

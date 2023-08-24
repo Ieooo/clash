@@ -48,6 +48,8 @@ func ParseProxy(mapping map[string]any) (C.Proxy, error) {
 			break
 		}
 		proxy = outbound.NewHttp(*httpOption)
+	case "vless":
+		fallthrough
 	case "vmess":
 		vmessOption := &outbound.VmessOption{
 			HTTPOpts: outbound.HTTPOptions{
@@ -59,7 +61,11 @@ func ParseProxy(mapping map[string]any) (C.Proxy, error) {
 		if err != nil {
 			break
 		}
-		proxy, err = outbound.NewVmess(*vmessOption)
+		if proxyType == "vless" {
+			proxy, err = outbound.NewVless(*vmessOption)
+		} else {
+			proxy, err = outbound.NewVmess(*vmessOption)
+		}
 	case "snell":
 		snellOption := &outbound.SnellOption{}
 		err = decoder.Decode(mapping, snellOption)
