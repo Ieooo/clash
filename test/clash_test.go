@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/netip"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -39,7 +39,7 @@ const (
 
 var (
 	waitTime = time.Second
-	localIP  = net.ParseIP("127.0.0.1")
+	localIP  = netip.MustParseAddr("127.0.0.1")
 
 	defaultExposedPorts = nat.PortSet{
 		"10002/tcp": struct{}{},
@@ -53,7 +53,6 @@ var (
 			{HostPort: "10002", HostIP: "0.0.0.0"},
 		},
 	}
-	isDarwin = runtime.GOOS == "darwin"
 )
 
 func init() {
@@ -63,13 +62,6 @@ func init() {
 	}
 	homeDir := filepath.Join(currentDir, "config")
 	C.SetHomeDir(homeDir)
-
-	if isDarwin {
-		localIP, err = defaultRouteIP()
-		if err != nil {
-			panic(err)
-		}
-	}
 
 	c, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
@@ -302,7 +294,7 @@ func testPingPongWithPacketConn(t *testing.T, pc net.PacketConn) error {
 	require.NoError(t, err)
 	defer l.Close()
 
-	rAddr := &net.UDPAddr{IP: localIP, Port: 10001}
+	rAddr := &net.UDPAddr{IP: localIP.AsSlice(), Port: 10001}
 
 	pingCh, pongCh, test := newPingPongPair()
 	go func() {
@@ -437,7 +429,7 @@ func testLargeDataWithPacketConn(t *testing.T, pc net.PacketConn) error {
 	require.NoError(t, err)
 	defer l.Close()
 
-	rAddr := &net.UDPAddr{IP: localIP, Port: 10001}
+	rAddr := &net.UDPAddr{IP: localIP.AsSlice(), Port: 10001}
 
 	times := 50
 	chunkSize := int64(1024)
@@ -570,7 +562,7 @@ func testSuit(t *testing.T, proxy C.ProxyAdapter) {
 
 	pc, err := proxy.ListenPacketContext(context.Background(), &C.Metadata{
 		NetWork: C.UDP,
-		DstIP:   localIP,
+		DstIP:   localIP.AsSlice(),
 		DstPort: 10001,
 	})
 	require.NoError(t, err)
@@ -580,7 +572,7 @@ func testSuit(t *testing.T, proxy C.ProxyAdapter) {
 
 	pc, err = proxy.ListenPacketContext(context.Background(), &C.Metadata{
 		NetWork: C.UDP,
-		DstIP:   localIP,
+		DstIP:   localIP.AsSlice(),
 		DstPort: 10001,
 	})
 	require.NoError(t, err)
@@ -590,7 +582,7 @@ func testSuit(t *testing.T, proxy C.ProxyAdapter) {
 
 	pc, err = proxy.ListenPacketContext(context.Background(), &C.Metadata{
 		NetWork: C.UDP,
-		DstIP:   localIP,
+		DstIP:   localIP.AsSlice(),
 		DstPort: 10001,
 	})
 	require.NoError(t, err)

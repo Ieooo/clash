@@ -9,7 +9,6 @@ require (
 	github.com/miekg/dns v1.1.55
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/automaxprocs v1.5.3
-	golang.org/x/net v0.14.0
 )
 
 replace github.com/Dreamacro/clash => ../
@@ -48,6 +47,7 @@ require (
 	golang.org/x/crypto v0.12.0 // indirect
 	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
