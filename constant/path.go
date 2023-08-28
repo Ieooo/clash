@@ -10,6 +10,9 @@ import (
 const Name = "clash"
 
 // Path is used to get the configuration path
+//
+// on Unix systems, `$HOME/.config/clash`.
+// on Windows, `%USERPROFILE%/.config/clash`.
 var Path = func() *path {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -17,6 +20,12 @@ var Path = func() *path {
 	}
 
 	homeDir = P.Join(homeDir, ".config", Name)
+
+	if _, err = os.Stat(homeDir); err != nil {
+		if configHome, ok := os.LookupEnv("XDG_CONFIG_HOME"); ok {
+			homeDir = P.Join(configHome, Name)
+		}
+	}
 	return &path{homeDir: homeDir, configFile: "config.yaml"}
 }()
 
