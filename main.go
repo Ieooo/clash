@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"syscall"
+	_ "time/tzdata"
 
 	"github.com/Dreamacro/clash/config"
 	C "github.com/Dreamacro/clash/constant"
