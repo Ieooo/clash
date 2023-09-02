@@ -265,7 +265,10 @@ func (r *Resolver) ipExchange(ctx context.Context, m *D.Msg) (msg *D.Msg, err er
 	res := <-msgCh
 	if res.Error == nil {
 		if ips := msgToIP(res.Msg); len(ips) != 0 {
-			if !r.shouldIPFallback(ips[0]) {
+			shouldNotFallback := lo.EveryBy(ips, func(ip net.IP) bool {
+				return !r.shouldIPFallback(ip)
+			})
+			if shouldNotFallback {
 				msg = res.Msg // no need to wait for fallback result
 				err = res.Error
 				return msg, err
