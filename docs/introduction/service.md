@@ -130,3 +130,85 @@ Stop Clash with:
 ```shell
 docker-compose stop
 ```
+
+## FreeBSD rc
+
+install clash with `ports(7)` or `pkg(8)`
+
+copy the required files to `/usr/local/etc/clash`
+
+```shell
+cp config.yaml /usr/local/etc/clash/
+cp Country.mmdb /usr/local/etc/clash/
+```
+
+Create the rc configuration file at `/usr/local/etc/rc.d/clash`:
+
+```shell
+#!/bin/sh
+
+# PROVIDE: clash
+# REQUIRE: NETWORKING DAEMON
+# BEFORE: LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name=clash
+rcvar=clash_enable
+
+: ${clash_enable="NO"}
+: ${clash_config_dir="/usr/local/etc/clash"}
+
+required_dirs="${clash_config_dir}"
+required_files="${clash_config_dir}/config.yaml ${clash_config_dir}/Country.mmdb"
+
+command="/usr/sbin/daemon"
+procname="/usr/local/bin/${name}"
+pidfile="/var/run/${name}.pid"
+start_precmd="${name}_prestart"
+
+clash_prestart()
+{
+	rc_flags="-T ${name} -p ${pidfile} ${procname} -d ${clash_config_dir} ${rc_flags}"
+}
+
+load_rc_config $name
+run_rc_command "$1"
+```
+
+make the script executable:
+
+```shell
+chmod +x /usr/local/etc/rc.d/clash
+```
+
+Launch clashd on system startup with:
+
+```shell
+service clash enable
+```
+
+Launch clashd immediately with:
+
+```shell
+service clash onestart
+```
+
+Check the status of Clash with:
+
+```shell
+service clash status
+```
+
+You can check log in file `/var/log/daemon.log`
+
+::: tip
+If you want to change the default config directory add the following lines to /etc/rc.conf :
+```shell
+clash_enable (bool):        Set it to YES to run clash on startup.
+                            Default: NO
+clash_config_dir (string):   clash config directory.
+                            Default: /usr/loca/etc/clash
+```
+:::
